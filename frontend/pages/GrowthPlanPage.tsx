@@ -7,9 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowRight, BookOpen, GraduationCap, Target, Zap, ExternalLink, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { GrowthItemsSkeleton } from '../components/LoadingSkeleton';
-import backend from '~backend/client';
 import type { GrowthItem } from '~backend/force/types';
 
 const typeIcons = {
@@ -32,18 +32,13 @@ function GrowthPlanContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
-
-  const userId = localStorage.getItem('userId');
+  const { getAuthenticatedBackend } = useAuth();
 
   useEffect(() => {
     const loadGrowthItems = async () => {
-      if (!userId) {
-        navigate('/');
-        return;
-      }
-
       try {
-        const response = await backend.force.getGrowthItems({ userId: parseInt(userId) });
+        const backend = getAuthenticatedBackend();
+        const response = await backend.force.getGrowthItems();
         setGrowthItems(response.growthItems);
       } catch (error) {
         console.error('Failed to load growth items:', error);
@@ -58,14 +53,13 @@ function GrowthPlanContent() {
     };
 
     loadGrowthItems();
-  }, [userId, navigate, toast, t]);
+  }, [toast, t, getAuthenticatedBackend]);
 
   const generateGrowthPlan = async () => {
-    if (!userId) return;
-
     setIsGenerating(true);
     try {
-      const response = await backend.force.generateGrowthPlan({ userId: parseInt(userId) });
+      const backend = getAuthenticatedBackend();
+      const response = await backend.force.generateGrowthPlan();
       setGrowthItems(response.growthItems);
       
       if (response.growthItems.length > 0) {
@@ -92,11 +86,9 @@ function GrowthPlanContent() {
   };
 
   const updateItemStatus = async (itemId: number, status: GrowthItem['status']) => {
-    if (!userId) return;
-
     try {
+      const backend = getAuthenticatedBackend();
       const updatedItem = await backend.force.updateGrowthItemStatus({
-        userId: parseInt(userId),
         itemId,
         status
       });

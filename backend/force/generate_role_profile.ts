@@ -1,4 +1,5 @@
 import { api } from "encore.dev/api";
+import { getAuthData } from "~encore/auth";
 import { secret } from "encore.dev/config";
 import { forceDB } from "./db";
 import type { RoleProfile } from "./types";
@@ -6,22 +7,24 @@ import type { RoleProfile } from "./types";
 const openAIKey = secret("OpenAIKey");
 
 export interface GenerateRoleProfileRequest {
-  userId: number;
   roleDescription: string;
 }
 
-// Generates an AI-powered role profile and skill map.
+// Generates an AI-powered role profile and skill map for the authenticated user
 export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
-  { expose: true, method: "POST", path: "/users/:userId/role-profile" },
+  { expose: true, method: "POST", path: "/role-profile", auth: true },
   async (req) => {
-    console.log('Starting role profile generation for user:', req.userId);
+    const auth = getAuthData()!;
+    const userId = parseInt(auth.userID);
+    
+    console.log('Starting role profile generation for user:', userId);
     console.log('Role description length:', req.roleDescription.length);
 
     // Update user with role description first
     await forceDB.exec`
       UPDATE users 
       SET role_description = ${req.roleDescription}, updated_at = NOW()
-      WHERE id = ${req.userId}
+      WHERE id = ${userId}
     `;
     console.log('Updated user role description in database');
 
@@ -179,7 +182,7 @@ Note: Keep the "id" field in English using underscores (for technical compatibil
     await forceDB.exec`
       UPDATE users 
       SET target_profile = ${profileJson}::jsonb, updated_at = NOW()
-      WHERE id = ${req.userId}
+      WHERE id = ${userId}
     `;
 
     console.log('Role profile saved successfully to database');
@@ -188,7 +191,7 @@ Note: Keep the "id" field in English using underscores (for technical compatibil
     const savedUser = await forceDB.queryRow`
       SELECT target_profile 
       FROM users 
-      WHERE id = ${req.userId}
+      WHERE id = ${userId}
     `;
     
     if (!savedUser || !savedUser.target_profile) {

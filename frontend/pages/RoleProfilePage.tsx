@@ -8,9 +8,9 @@ import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { FormSkeleton, CardSkeleton } from '../components/LoadingSkeleton';
-import backend from '~backend/client';
 import type { RoleProfile } from '~backend/force/types';
 
 function RoleProfileContent() {
@@ -21,8 +21,7 @@ function RoleProfileContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
-
-  const userId = localStorage.getItem('userId');
+  const { getAuthenticatedBackend } = useAuth();
 
   const handleGenerateProfile = async () => {
     if (!roleDescription.trim()) {
@@ -34,25 +33,15 @@ function RoleProfileContent() {
       return;
     }
 
-    if (!userId) {
-      toast({
-        title: t('common.error'),
-        description: "User session not found. Please start over.",
-        variant: "destructive",
-      });
-      navigate('/');
-      return;
-    }
-
     setIsGenerating(true);
     setError(null);
     
     try {
-      console.log('Generating role profile for user:', userId);
+      console.log('Generating role profile');
       console.log('Role description:', roleDescription);
       
+      const backend = getAuthenticatedBackend();
       const profile = await backend.force.generateRoleProfile({
-        userId: parseInt(userId),
         roleDescription: roleDescription.trim()
       });
       

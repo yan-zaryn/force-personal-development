@@ -2,7 +2,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { AuthProvider } from './hooks/useAuth';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
+import AuthCallback from './components/AuthCallback';
 import HomePage from './pages/HomePage';
 import RoleProfilePage from './pages/RoleProfilePage';
 import SkillAssessmentPage from './pages/SkillAssessmentPage';
@@ -41,34 +44,47 @@ function AppInner() {
                 <HomePage />
               </ErrorBoundary>
             } />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/role-profile" element={
               <ErrorBoundary>
-                <RoleProfilePage />
+                <ProtectedRoute>
+                  <RoleProfilePage />
+                </ProtectedRoute>
               </ErrorBoundary>
             } />
             <Route path="/skill-assessment" element={
               <ErrorBoundary>
-                <SkillAssessmentPage />
+                <ProtectedRoute>
+                  <SkillAssessmentPage />
+                </ProtectedRoute>
               </ErrorBoundary>
             } />
             <Route path="/growth-plan" element={
               <ErrorBoundary>
-                <GrowthPlanPage />
+                <ProtectedRoute>
+                  <GrowthPlanPage />
+                </ProtectedRoute>
               </ErrorBoundary>
             } />
             <Route path="/progress" element={
               <ErrorBoundary>
-                <ProgressTrackerPage />
+                <ProtectedRoute>
+                  <ProgressTrackerPage />
+                </ProtectedRoute>
               </ErrorBoundary>
             } />
             <Route path="/mental-models" element={
               <ErrorBoundary>
-                <MentalModelsPage />
+                <ProtectedRoute>
+                  <MentalModelsPage />
+                </ProtectedRoute>
               </ErrorBoundary>
             } />
             <Route path="/profile" element={
               <ErrorBoundary>
-                <ProfilePage />
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
               </ErrorBoundary>
             } />
           </Routes>
@@ -84,7 +100,9 @@ export default function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
-          <AppInner />
+          <AuthProvider>
+            <AppInner />
+          </AuthProvider>
         </LanguageProvider>
       </QueryClientProvider>
     </ErrorBoundary>

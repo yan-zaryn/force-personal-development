@@ -1,19 +1,19 @@
 import { api } from "encore.dev/api";
+import { getAuthData } from "~encore/auth";
 import { forceDB } from "./db";
 import type { SkillAssessment } from "./types";
-
-export interface GetSkillAssessmentsParams {
-  userId: number;
-}
 
 export interface GetSkillAssessmentsResponse {
   assessments: SkillAssessment[];
 }
 
-// Retrieves all skill assessments for a user.
-export const getSkillAssessments = api<GetSkillAssessmentsParams, GetSkillAssessmentsResponse>(
-  { expose: true, method: "GET", path: "/users/:userId/skills" },
-  async (params) => {
+// Retrieves all skill assessments for the authenticated user
+export const getSkillAssessments = api<void, GetSkillAssessmentsResponse>(
+  { expose: true, method: "GET", path: "/skills", auth: true },
+  async () => {
+    const auth = getAuthData()!;
+    const userId = parseInt(auth.userID);
+    
     const assessments: SkillAssessment[] = [];
     
     for await (const row of forceDB.query<SkillAssessment>`
@@ -22,7 +22,7 @@ export const getSkillAssessments = api<GetSkillAssessmentsParams, GetSkillAssess
              examples, recommended_resources as "recommendedResources",
              created_at as "createdAt", updated_at as "updatedAt"
       FROM skill_assessments 
-      WHERE user_id = ${params.userId}
+      WHERE user_id = ${userId}
       ORDER BY area, name
     `) {
       assessments.push(row);

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,9 +7,9 @@ import { Brain, Lightbulb, Target, Save, Loader2, AlertCircle } from 'lucide-rea
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { FormSkeleton, CardSkeleton } from '../components/LoadingSkeleton';
-import backend from '~backend/client';
 import type { MentalModelSession } from '~backend/force/types';
 
 function MentalModelsContent() {
@@ -19,24 +18,13 @@ function MentalModelsContent() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const userId = localStorage.getItem('userId');
-
-  useEffect(() => {
-    if (!userId) {
-      console.log('No userId found, redirecting to home');
-      navigate('/');
-      return;
-    }
-    setIsLoading(false);
-  }, [userId, navigate]);
+  const { getAuthenticatedBackend } = useAuth();
 
   const analyzeWithMentalModels = async () => {
-    if (!userId || !prompt.trim()) {
+    if (!prompt.trim()) {
       toast({
         title: t('mentalModels.missingInformation'),
         description: t('mentalModels.shareDecision'),
@@ -49,11 +37,11 @@ function MentalModelsContent() {
     setError(null);
     
     try {
-      console.log('Analyzing with mental models for user:', userId);
+      console.log('Analyzing with mental models');
       console.log('Prompt:', prompt);
       
+      const backend = getAuthenticatedBackend();
       const session = await backend.force.mentalModelsCoach({
-        userId: parseInt(userId),
         prompt: prompt.trim()
       });
 
@@ -101,7 +89,7 @@ function MentalModelsContent() {
   };
 
   const saveToJournal = async () => {
-    if (!userId || !currentSession) {
+    if (!currentSession) {
       toast({
         title: t('common.error'),
         description: t('mentalModels.noSessionData'),
@@ -112,6 +100,7 @@ function MentalModelsContent() {
 
     setIsSaving(true);
     try {
+      const backend = getAuthenticatedBackend();
       const reflectionContent = `Mental Models Analysis for: "${currentSession.prompt}"\n\n${
         currentSession.models.map((model, index) => 
           `${index + 1}. ${model.name}\n` +
@@ -121,7 +110,6 @@ function MentalModelsContent() {
       }`;
 
       await backend.force.saveReflection({
-        userId: parseInt(userId),
         content: reflectionContent,
         type: 'mental_model'
       });
@@ -160,16 +148,6 @@ function MentalModelsContent() {
           <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
         </div>
         <FormSkeleton />
-      </div>
-    );
-  }
-
-  if (!userId) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-0">
-        <div className="text-center py-12">
-          <p className="text-gray-600">{t('mentalModels.loginRequired')}</p>
-        </div>
       </div>
     );
   }

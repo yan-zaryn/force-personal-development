@@ -1,4 +1,5 @@
 import { api, APIError } from "encore.dev/api";
+import { getAuthData } from "~encore/auth";
 import { forceDB } from "./db";
 import type { User } from "./types";
 
@@ -7,7 +8,7 @@ export interface CreateUserRequest {
   name: string;
 }
 
-// Creates a new user profile.
+// Creates a new user profile (deprecated - use Google OAuth instead)
 export const createUser = api<CreateUserRequest, User>(
   { expose: true, method: "POST", path: "/users" },
   async (req) => {
@@ -35,7 +36,7 @@ export const createUser = api<CreateUserRequest, User>(
         const user = await forceDB.queryRow<User>`
           SELECT id, email, name, role_description as "roleDescription", 
                  target_profile as "targetProfile", created_at as "createdAt", 
-                 updated_at as "updatedAt"
+                 updated_at as "updatedAt", picture
           FROM users 
           WHERE email = ${req.email}
         `;
@@ -55,7 +56,7 @@ export const createUser = api<CreateUserRequest, User>(
         VALUES (${req.email}, ${req.name})
         RETURNING id, email, name, role_description as "roleDescription", 
                   target_profile as "targetProfile", created_at as "createdAt", 
-                  updated_at as "updatedAt"
+                  updated_at as "updatedAt", picture
       `;
       
       if (!user) {
@@ -77,7 +78,7 @@ export const createUser = api<CreateUserRequest, User>(
           const user = await forceDB.queryRow<User>`
             SELECT id, email, name, role_description as "roleDescription", 
                    target_profile as "targetProfile", created_at as "createdAt", 
-                   updated_at as "updatedAt"
+                   updated_at as "updatedAt", picture
             FROM users 
             WHERE email = ${req.email}
           `;

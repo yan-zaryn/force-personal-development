@@ -8,9 +8,9 @@ import { ArrowRight, Save, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { SkillsSkeleton } from '../components/LoadingSkeleton';
-import backend from '~backend/client';
 import type { User, RoleProfile } from '~backend/force/types';
 
 interface SkillRating {
@@ -29,23 +29,17 @@ function SkillAssessmentContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
-
-  const userId = localStorage.getItem('userId');
+  const { getAuthenticatedBackend } = useAuth();
 
   useEffect(() => {
     const loadUserData = async () => {
-      if (!userId) {
-        console.log('No userId found, redirecting to home');
-        navigate('/');
-        return;
-      }
-
-      console.log('Loading user data for userId:', userId);
+      console.log('Loading user data');
       setIsLoading(true);
       setError(null);
 
       try {
-        const userData = await backend.force.getUser({ id: parseInt(userId) });
+        const backend = getAuthenticatedBackend();
+        const userData = await backend.force.getCurrentUser();
         console.log('User data loaded:', userData);
         setUser(userData);
         
@@ -75,7 +69,7 @@ function SkillAssessmentContent() {
     };
 
     loadUserData();
-  }, [userId, navigate, toast, t]);
+  }, [toast, t, getAuthenticatedBackend]);
 
   const updateRating = (skillId: string, field: keyof SkillRating, value: number | string) => {
     setRatings(prev => ({
@@ -89,10 +83,11 @@ function SkillAssessmentContent() {
   };
 
   const saveAssessments = async () => {
-    if (!userId || !roleProfile) return;
+    if (!roleProfile) return;
 
     setIsSaving(true);
     try {
+      const backend = getAuthenticatedBackend();
       const promises = [];
       
       for (const area of roleProfile.skillAreas) {
@@ -101,7 +96,6 @@ function SkillAssessmentContent() {
           if (rating && rating.currentLevel > 0) {
             promises.push(
               backend.force.saveSkillAssessment({
-                userId: parseInt(userId),
                 skillId: skill.id,
                 area: area.area,
                 name: skill.name,

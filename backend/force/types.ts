@@ -6,6 +6,7 @@ export interface User {
   targetProfile?: any;
   createdAt: Date;
   updatedAt: Date;
+  picture?: string;
 }
 
 export interface SkillAssessment {

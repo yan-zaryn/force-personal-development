@@ -1,9 +1,9 @@
 import { api } from "encore.dev/api";
+import { getAuthData } from "~encore/auth";
 import { forceDB } from "./db";
 import type { SkillAssessment } from "./types";
 
 export interface SaveSkillAssessmentRequest {
-  userId: number;
   skillId: string;
   area: string;
   name: string;
@@ -12,17 +12,20 @@ export interface SaveSkillAssessmentRequest {
   examples?: string;
 }
 
-// Saves or updates a skill self-assessment.
+// Saves or updates a skill self-assessment for the authenticated user
 export const saveSkillAssessment = api<SaveSkillAssessmentRequest, SkillAssessment>(
-  { expose: true, method: "POST", path: "/users/:userId/skills" },
+  { expose: true, method: "POST", path: "/skills", auth: true },
   async (req) => {
-    console.log('Saving skill assessment for user:', req.userId, 'skill:', req.skillId);
+    const auth = getAuthData()!;
+    const userId = parseInt(auth.userID);
+    
+    console.log('Saving skill assessment for user:', userId, 'skill:', req.skillId);
     
     const assessment = await forceDB.queryRow<SkillAssessment>`
       INSERT INTO skill_assessments 
         (user_id, skill_id, area, name, target_level, current_level, examples)
       VALUES 
-        (${req.userId}, ${req.skillId}, ${req.area}, ${req.name}, 
+        (${userId}, ${req.skillId}, ${req.area}, ${req.name}, 
          ${req.targetLevel}, ${req.currentLevel}, ${req.examples})
       ON CONFLICT (user_id, skill_id) 
       DO UPDATE SET 
@@ -36,7 +39,7 @@ export const saveSkillAssessment = api<SaveSkillAssessmentRequest, SkillAssessme
     `;
 
     if (!assessment) {
-      console.error('Failed to save skill assessment for user:', req.userId, 'skill:', req.skillId);
+      console.error('Failed to save skill assessment for user:', userId, 'skill:', req.skillId);
       throw new Error("Failed to save skill assessment");
     }
 

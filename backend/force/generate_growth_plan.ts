@@ -1,23 +1,23 @@
 import { api } from "encore.dev/api";
+import { getAuthData } from "~encore/auth";
 import { secret } from "encore.dev/config";
 import { forceDB } from "./db";
 import type { GrowthItem, SkillAssessment } from "./types";
 
 const openAIKey = secret("OpenAIKey");
 
-export interface GenerateGrowthPlanRequest {
-  userId: number;
-}
-
 export interface GenerateGrowthPlanResponse {
   growthItems: GrowthItem[];
 }
 
-// Generates a personalized growth plan based on skill gaps.
-export const generateGrowthPlan = api<GenerateGrowthPlanRequest, GenerateGrowthPlanResponse>(
-  { expose: true, method: "POST", path: "/users/:userId/growth-plan" },
-  async (req) => {
-    console.log('Generating growth plan for user:', req.userId);
+// Generates a personalized growth plan based on skill gaps for the authenticated user
+export const generateGrowthPlan = api<void, GenerateGrowthPlanResponse>(
+  { expose: true, method: "POST", path: "/growth-plan", auth: true },
+  async () => {
+    const auth = getAuthData()!;
+    const userId = parseInt(auth.userID);
+    
+    console.log('Generating growth plan for user:', userId);
     
     // Get user's skill assessments
     const assessments: SkillAssessment[] = [];
@@ -27,7 +27,7 @@ export const generateGrowthPlan = api<GenerateGrowthPlanRequest, GenerateGrowthP
              examples, recommended_resources as "recommendedResources",
              created_at as "createdAt", updated_at as "updatedAt"
       FROM skill_assessments 
-      WHERE user_id = ${req.userId}
+      WHERE user_id = ${userId}
     `) {
       assessments.push(row);
     }
@@ -109,7 +109,7 @@ Provide 3-8 items total, prioritizing the biggest skill gaps.`
     for (const item of plan.growthItems) {
       const savedItem = await forceDB.queryRow<GrowthItem>`
         INSERT INTO growth_items (user_id, type, title, description, link)
-        VALUES (${req.userId}, ${item.type}, ${item.title}, ${item.description}, ${item.link})
+        VALUES (${userId}, ${item.type}, ${item.title}, ${item.description}, ${item.link})
         RETURNING id, user_id as "userId", type, title, description, link, status,
                   created_at as "createdAt", updated_at as "updatedAt"
       `;

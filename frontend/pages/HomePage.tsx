@@ -1,96 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Target, BarChart3, TrendingUp, Brain, AlertCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Target, BarChart3, TrendingUp, Brain } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import backend from '~backend/client';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 
 function HomePageContent() {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { t } = useLanguage();
+  const { isAuthenticated, user } = useAuth();
 
-  const handleGetStarted = async () => {
-    if (!email || !name) {
-      setError(t('home.missingInfo'));
-      toast({
-        title: t('home.missingInfo'),
-        description: t('home.missingInfo'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!email.includes('@')) {
-      setError(t('home.invalidEmail'));
-      toast({
-        title: t('home.invalidEmail'),
-        description: t('home.invalidEmail'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      console.log('Creating user with:', { email, name });
-      
-      const user = await backend.force.createUser({ 
-        email: email.trim(), 
-        name: name.trim() 
-      });
-      
-      console.log('User created successfully:', user);
-      
-      localStorage.setItem('userId', user.id.toString());
-      localStorage.setItem('userName', user.name);
-      localStorage.setItem('userEmail', user.email);
-      
-      toast({
-        title: t('home.profileCreated'),
-        description: t('home.welcomeMessage').replace('{name}', user.name),
-      });
-      
-      navigate('/role-profile');
-    } catch (error) {
-      console.error('Failed to create user:', error);
-      
-      let errorMessage = t('home.error');
-      
-      if (error instanceof Error) {
-        if (error.message.includes('invalid argument')) {
-          errorMessage = t('home.errorInput');
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = t('home.errorNetwork');
-        } else if (error.message.includes('internal')) {
-          errorMessage = t('home.errorServer');
-        }
-      }
-      
-      setError(errorMessage);
-      toast({
-        title: t('common.error'),
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleTryAgain = () => {
-    setError(null);
+  const handleAuthSuccess = () => {
+    navigate('/role-profile');
   };
 
   const features = [
@@ -127,61 +50,41 @@ function HomePageContent() {
         </p>
       </div>
 
-      <div className="max-w-md mx-auto mb-16">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('home.getStarted')}</CardTitle>
-            <CardDescription>
-              {t('home.createProfile')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              placeholder={t('home.namePlaceholder')}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
-            />
-            <Input
-              type="email"
-              placeholder={t('home.emailPlaceholder')}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-            />
-            
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            <div className="flex space-x-2">
-              <Button 
-                onClick={handleGetStarted} 
-                className="flex-1"
-                disabled={isLoading}
-              >
-                {isLoading ? t('home.creatingProfile') : t('home.startJourney')}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              
-              {error && (
-                <Button 
-                  onClick={handleTryAgain}
-                  variant="outline"
-                  disabled={isLoading}
-                >
-                  {t('home.tryAgain')}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {!isAuthenticated ? (
+        <div className="max-w-md mx-auto mb-16">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('home.getStarted')}</CardTitle>
+              <CardDescription>
+                Sign in with Google to begin your professional development journey
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <GoogleAuthButton 
+                onSuccess={handleAuthSuccess}
+                className="w-full"
+              />
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="max-w-md mx-auto mb-16">
+          <Card>
+            <CardHeader>
+              <CardTitle>Welcome back, {user?.name}!</CardTitle>
+              <CardDescription>
+                Continue your professional development journey
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <GoogleAuthButton 
+                onSuccess={() => navigate('/role-profile')}
+                className="w-full"
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {features.map((feature, index) => {

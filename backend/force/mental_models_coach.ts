@@ -1,4 +1,5 @@
 import { api } from "encore.dev/api";
+import { getAuthData } from "~encore/auth";
 import { secret } from "encore.dev/config";
 import { forceDB } from "./db";
 import type { MentalModelSession, MentalModel } from "./types";
@@ -6,15 +7,17 @@ import type { MentalModelSession, MentalModel } from "./types";
 const openAIKey = secret("OpenAIKey");
 
 export interface MentalModelsCoachRequest {
-  userId: number;
   prompt: string;
 }
 
-// Provides mental model analysis for complex decisions and dilemmas.
+// Provides mental model analysis for complex decisions and dilemmas for the authenticated user
 export const mentalModelsCoach = api<MentalModelsCoachRequest, MentalModelSession>(
-  { expose: true, method: "POST", path: "/users/:userId/mental-models" },
+  { expose: true, method: "POST", path: "/mental-models", auth: true },
   async (req) => {
-    console.log('Generating mental models analysis for user:', req.userId);
+    const auth = getAuthData()!;
+    const userId = parseInt(auth.userID);
+    
+    console.log('Generating mental models analysis for user:', userId);
     console.log('User prompt:', req.prompt);
     
     // Generate mental models analysis using OpenAI with the specific prompt pattern
@@ -162,12 +165,12 @@ IMPORTANT: Return ONLY valid JSON. Do not include any text before or after the J
 
     const session = await forceDB.queryRow<MentalModelSession>`
       INSERT INTO mental_model_sessions (user_id, prompt, models)
-      VALUES (${req.userId}, ${req.prompt}, ${modelsJson}::jsonb)
+      VALUES (${userId}, ${req.prompt}, ${modelsJson}::jsonb)
       RETURNING id, user_id as "userId", prompt, models, created_at as "createdAt"
     `;
 
     if (!session) {
-      console.error('Failed to save mental model session for user:', req.userId);
+      console.error('Failed to save mental model session for user:', userId);
       throw new Error("Failed to save mental model session");
     }
 

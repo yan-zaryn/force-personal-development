@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  * Client is an API client for the  Encore application.
  */
 export class Client {
+    public readonly auth: auth.ServiceClient
     public readonly force: force.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
@@ -48,6 +49,7 @@ export class Client {
         this.target = target
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
+        this.auth = new auth.ServiceClient(base)
         this.force = new force.ServiceClient(base)
     }
 
@@ -82,13 +84,55 @@ export interface ClientOptions {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import {
+    googleAuth as api_auth_google_oauth_googleAuth,
+    logout as api_auth_google_oauth_logout
+} from "~backend/auth/google_oauth";
+
+export namespace auth {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.googleAuth = this.googleAuth.bind(this)
+            this.logout = this.logout.bind(this)
+        }
+
+        /**
+         * Exchange Google OAuth code for user session
+         */
+        public async googleAuth(params: RequestType<typeof api_auth_google_oauth_googleAuth>): Promise<ResponseType<typeof api_auth_google_oauth_googleAuth>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/auth/google`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_google_oauth_googleAuth>
+        }
+
+        /**
+         * Logout endpoint
+         */
+        public async logout(): Promise<ResponseType<typeof api_auth_google_oauth_logout>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/auth/logout`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_auth_google_oauth_logout>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
 import { createUser as api_force_create_user_createUser } from "~backend/force/create_user";
 import { generateGrowthPlan as api_force_generate_growth_plan_generateGrowthPlan } from "~backend/force/generate_growth_plan";
 import { generateRoleProfile as api_force_generate_role_profile_generateRoleProfile } from "~backend/force/generate_role_profile";
 import { getGrowthItems as api_force_get_growth_items_getGrowthItems } from "~backend/force/get_growth_items";
 import { getReflections as api_force_get_reflections_getReflections } from "~backend/force/get_reflections";
 import { getSkillAssessments as api_force_get_skill_assessments_getSkillAssessments } from "~backend/force/get_skill_assessments";
-import { getUser as api_force_get_user_getUser } from "~backend/force/get_user";
+import {
+    getCurrentUser as api_force_get_user_getCurrentUser,
+    getUser as api_force_get_user_getUser
+} from "~backend/force/get_user";
 import { mentalModelsCoach as api_force_mental_models_coach_mentalModelsCoach } from "~backend/force/mental_models_coach";
 import { saveReflection as api_force_save_reflection_saveReflection } from "~backend/force/save_reflection";
 import { saveSkillAssessment as api_force_save_skill_assessment_saveSkillAssessment } from "~backend/force/save_skill_assessment";
@@ -104,6 +148,7 @@ export namespace force {
             this.createUser = this.createUser.bind(this)
             this.generateGrowthPlan = this.generateGrowthPlan.bind(this)
             this.generateRoleProfile = this.generateRoleProfile.bind(this)
+            this.getCurrentUser = this.getCurrentUser.bind(this)
             this.getGrowthItems = this.getGrowthItems.bind(this)
             this.getReflections = this.getReflections.bind(this)
             this.getSkillAssessments = this.getSkillAssessments.bind(this)
@@ -115,7 +160,7 @@ export namespace force {
         }
 
         /**
-         * Creates a new user profile.
+         * Creates a new user profile (deprecated - use Google OAuth instead)
          */
         public async createUser(params: RequestType<typeof api_force_create_user_createUser>): Promise<ResponseType<typeof api_force_create_user_createUser>> {
             // Now make the actual call to the API
@@ -124,57 +169,61 @@ export namespace force {
         }
 
         /**
-         * Generates a personalized growth plan based on skill gaps.
+         * Generates a personalized growth plan based on skill gaps for the authenticated user
          */
-        public async generateGrowthPlan(params: { userId: number }): Promise<ResponseType<typeof api_force_generate_growth_plan_generateGrowthPlan>> {
+        public async generateGrowthPlan(): Promise<ResponseType<typeof api_force_generate_growth_plan_generateGrowthPlan>> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/users/${encodeURIComponent(params.userId)}/growth-plan`, {method: "POST", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/growth-plan`, {method: "POST", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_generate_growth_plan_generateGrowthPlan>
         }
 
         /**
-         * Generates an AI-powered role profile and skill map.
+         * Generates an AI-powered role profile and skill map for the authenticated user
          */
         public async generateRoleProfile(params: RequestType<typeof api_force_generate_role_profile_generateRoleProfile>): Promise<ResponseType<typeof api_force_generate_role_profile_generateRoleProfile>> {
-            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
-            const body: Record<string, any> = {
-                roleDescription: params.roleDescription,
-            }
-
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/users/${encodeURIComponent(params.userId)}/role-profile`, {method: "POST", body: JSON.stringify(body)})
+            const resp = await this.baseClient.callTypedAPI(`/role-profile`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_generate_role_profile_generateRoleProfile>
         }
 
         /**
-         * Retrieves all growth plan items for a user.
+         * Get current authenticated user
          */
-        public async getGrowthItems(params: { userId: number }): Promise<ResponseType<typeof api_force_get_growth_items_getGrowthItems>> {
+        public async getCurrentUser(): Promise<ResponseType<typeof api_force_get_user_getCurrentUser>> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/users/${encodeURIComponent(params.userId)}/growth-items`, {method: "GET", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/auth/me`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_get_user_getCurrentUser>
+        }
+
+        /**
+         * Retrieves all growth plan items for the authenticated user
+         */
+        public async getGrowthItems(): Promise<ResponseType<typeof api_force_get_growth_items_getGrowthItems>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/growth-items`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_get_growth_items_getGrowthItems>
         }
 
         /**
-         * Retrieves all reflection entries for a user.
+         * Retrieves all reflection entries for the authenticated user
          */
-        public async getReflections(params: { userId: number }): Promise<ResponseType<typeof api_force_get_reflections_getReflections>> {
+        public async getReflections(): Promise<ResponseType<typeof api_force_get_reflections_getReflections>> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/users/${encodeURIComponent(params.userId)}/reflections`, {method: "GET", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/reflections`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_get_reflections_getReflections>
         }
 
         /**
-         * Retrieves all skill assessments for a user.
+         * Retrieves all skill assessments for the authenticated user
          */
-        public async getSkillAssessments(params: { userId: number }): Promise<ResponseType<typeof api_force_get_skill_assessments_getSkillAssessments>> {
+        public async getSkillAssessments(): Promise<ResponseType<typeof api_force_get_skill_assessments_getSkillAssessments>> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/users/${encodeURIComponent(params.userId)}/skills`, {method: "GET", body: undefined})
+            const resp = await this.baseClient.callTypedAPI(`/skills`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_get_skill_assessments_getSkillAssessments>
         }
 
         /**
-         * Retrieves a user by ID.
+         * Retrieves a user by ID
          */
         public async getUser(params: { id: number }): Promise<ResponseType<typeof api_force_get_user_getUser>> {
             // Now make the actual call to the API
@@ -183,55 +232,34 @@ export namespace force {
         }
 
         /**
-         * Provides mental model analysis for complex decisions and dilemmas.
+         * Provides mental model analysis for complex decisions and dilemmas for the authenticated user
          */
         public async mentalModelsCoach(params: RequestType<typeof api_force_mental_models_coach_mentalModelsCoach>): Promise<ResponseType<typeof api_force_mental_models_coach_mentalModelsCoach>> {
-            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
-            const body: Record<string, any> = {
-                prompt: params.prompt,
-            }
-
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/users/${encodeURIComponent(params.userId)}/mental-models`, {method: "POST", body: JSON.stringify(body)})
+            const resp = await this.baseClient.callTypedAPI(`/mental-models`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_mental_models_coach_mentalModelsCoach>
         }
 
         /**
-         * Saves a reflection entry to the user's journal.
+         * Saves a reflection entry to the authenticated user's journal
          */
         public async saveReflection(params: RequestType<typeof api_force_save_reflection_saveReflection>): Promise<ResponseType<typeof api_force_save_reflection_saveReflection>> {
-            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
-            const body: Record<string, any> = {
-                content: params.content,
-                type:    params.type,
-            }
-
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/users/${encodeURIComponent(params.userId)}/reflections`, {method: "POST", body: JSON.stringify(body)})
+            const resp = await this.baseClient.callTypedAPI(`/reflections`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_save_reflection_saveReflection>
         }
 
         /**
-         * Saves or updates a skill self-assessment.
+         * Saves or updates a skill self-assessment for the authenticated user
          */
         public async saveSkillAssessment(params: RequestType<typeof api_force_save_skill_assessment_saveSkillAssessment>): Promise<ResponseType<typeof api_force_save_skill_assessment_saveSkillAssessment>> {
-            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
-            const body: Record<string, any> = {
-                area:         params.area,
-                currentLevel: params.currentLevel,
-                examples:     params.examples,
-                name:         params.name,
-                skillId:      params.skillId,
-                targetLevel:  params.targetLevel,
-            }
-
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/users/${encodeURIComponent(params.userId)}/skills`, {method: "POST", body: JSON.stringify(body)})
+            const resp = await this.baseClient.callTypedAPI(`/skills`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_save_skill_assessment_saveSkillAssessment>
         }
 
         /**
-         * Updates the status of a growth plan item.
+         * Updates the status of a growth plan item for the authenticated user
          */
         public async updateGrowthItemStatus(params: RequestType<typeof api_force_update_growth_item_status_updateGrowthItemStatus>): Promise<ResponseType<typeof api_force_update_growth_item_status_updateGrowthItemStatus>> {
             // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
@@ -240,7 +268,7 @@ export namespace force {
             }
 
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/users/${encodeURIComponent(params.userId)}/growth-items/${encodeURIComponent(params.itemId)}/status`, {method: "PUT", body: JSON.stringify(body)})
+            const resp = await this.baseClient.callTypedAPI(`/growth-items/${encodeURIComponent(params.itemId)}/status`, {method: "PUT", body: JSON.stringify(body)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_force_update_growth_item_status_updateGrowthItemStatus>
         }
     }

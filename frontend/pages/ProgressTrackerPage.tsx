@@ -7,9 +7,9 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, TrendingUp, BookOpen, Save } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { StatsSkeleton, SkillsSkeleton, CardSkeleton } from '../components/LoadingSkeleton';
-import backend from '~backend/client';
 import type { SkillAssessment, GrowthItem, ReflectionEntry } from '~backend/force/types';
 
 function ProgressTrackerContent() {
@@ -21,18 +21,16 @@ function ProgressTrackerContent() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { t } = useLanguage();
-
-  const userId = localStorage.getItem('userId');
+  const { getAuthenticatedBackend } = useAuth();
 
   useEffect(() => {
     const loadProgressData = async () => {
-      if (!userId) return;
-
       try {
+        const backend = getAuthenticatedBackend();
         const [skillsResponse, growthResponse, reflectionsResponse] = await Promise.all([
-          backend.force.getSkillAssessments({ userId: parseInt(userId) }),
-          backend.force.getGrowthItems({ userId: parseInt(userId) }),
-          backend.force.getReflections({ userId: parseInt(userId) })
+          backend.force.getSkillAssessments(),
+          backend.force.getGrowthItems(),
+          backend.force.getReflections()
         ]);
 
         console.log('Loaded skill assessments:', skillsResponse.assessments);
@@ -60,15 +58,15 @@ function ProgressTrackerContent() {
     };
 
     loadProgressData();
-  }, [userId, toast, t]);
+  }, [toast, t, getAuthenticatedBackend]);
 
   const saveReflection = async () => {
-    if (!userId || !newReflection.trim()) return;
+    if (!newReflection.trim()) return;
 
     setIsSaving(true);
     try {
+      const backend = getAuthenticatedBackend();
       const reflection = await backend.force.saveReflection({
-        userId: parseInt(userId),
         content: newReflection,
         type: 'general'
       });
