@@ -4,15 +4,15 @@ import { forceDB } from "./db";
 import type { User } from "./types";
 
 export interface GetUserParams {
-  id?: number;
+  id: number;
 }
 
-// Retrieves the current authenticated user or a user by ID
+// Retrieves a user by ID
 export const getUser = api<GetUserParams, User>(
-  { expose: true, method: "GET", path: "/users/:id?", auth: true },
+  { expose: true, method: "GET", path: "/users/:id", auth: true },
   async (params) => {
     const auth = getAuthData()!;
-    const userId = params.id || parseInt(auth.userID);
+    const userId = params.id;
     
     console.log('Getting user with ID:', userId);
     
