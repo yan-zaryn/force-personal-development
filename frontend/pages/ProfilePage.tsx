@@ -20,7 +20,8 @@ import {
   Mail,
   MapPin,
   Briefcase,
-  Award
+  Award,
+  BarChart3
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import backend from '~backend/client';
@@ -35,6 +36,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [editedRoleDescription, setEditedRoleDescription] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -43,9 +45,14 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadProfileData = async () => {
       if (!userId) {
+        console.log('No userId found, redirecting to home');
         navigate('/');
         return;
       }
+
+      console.log('Loading profile data for userId:', userId);
+      setIsLoading(true);
+      setError(null);
 
       try {
         const [userResponse, skillsResponse, growthResponse] = await Promise.all([
@@ -54,6 +61,7 @@ export default function ProfilePage() {
           backend.force.getGrowthItems({ userId: parseInt(userId) })
         ]);
 
+        console.log('Profile data loaded successfully');
         setUser(userResponse);
         setEditedName(userResponse.name);
         setEditedRoleDescription(userResponse.roleDescription || '');
@@ -61,6 +69,7 @@ export default function ProfilePage() {
         setGrowthItems(growthResponse.growthItems);
       } catch (error) {
         console.error('Failed to load profile data:', error);
+        setError("Failed to load your profile data. Please try again.");
         toast({
           title: "Error",
           description: "Failed to load your profile data. Please try again.",
@@ -149,11 +158,40 @@ export default function ProfilePage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-0">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
+          <p className="text-gray-600">
+            Manage your professional development profile and track your progress.
+          </p>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Error Loading Profile</CardTitle>
+            <CardDescription>
+              {error}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-0">
         <div className="text-center py-12">
           <p className="text-gray-600">Profile not found.</p>
+          <Button onClick={() => navigate('/')} className="mt-4">
+            Go Home
+          </Button>
         </div>
       </div>
     );
