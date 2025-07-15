@@ -62,11 +62,31 @@ export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`OpenAI API error: ${response.status} ${response.statusText}`, errorText);
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const roleProfile = JSON.parse(data.choices[0].message.content);
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Invalid OpenAI response structure:', data);
+      throw new Error('Invalid response from OpenAI API');
+    }
+
+    let roleProfile;
+    try {
+      roleProfile = JSON.parse(data.choices[0].message.content);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response:', data.choices[0].message.content);
+      throw new Error('Failed to parse AI response');
+    }
+
+    // Validate the response structure
+    if (!roleProfile.archetype || !roleProfile.skillAreas || !Array.isArray(roleProfile.skillAreas)) {
+      console.error('Invalid role profile structure:', roleProfile);
+      throw new Error('Invalid role profile generated');
+    }
 
     // Store the target profile
     await forceDB.exec`

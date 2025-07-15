@@ -40,16 +40,36 @@ export default function RoleProfilePage() {
 
     setIsGenerating(true);
     try {
+      console.log('Generating role profile for user:', userId);
+      console.log('Role description:', roleDescription);
+      
       const profile = await backend.force.generateRoleProfile({
         userId: parseInt(userId),
-        roleDescription
+        roleDescription: roleDescription.trim()
       });
+      
+      console.log('Generated profile:', profile);
       setRoleProfile(profile);
+      
+      toast({
+        title: "Profile Generated",
+        description: "Your role profile has been successfully created!",
+      });
     } catch (error) {
       console.error('Failed to generate role profile:', error);
+      
+      let errorMessage = "Failed to generate your role profile. Please try again.";
+      if (error instanceof Error) {
+        if (error.message.includes('OpenAI')) {
+          errorMessage = "AI service is currently unavailable. Please try again later.";
+        } else if (error.message.includes('Invalid')) {
+          errorMessage = "There was an issue processing your role description. Please try rephrasing it.";
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to generate your role profile. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
