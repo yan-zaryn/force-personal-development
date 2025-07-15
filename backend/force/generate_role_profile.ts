@@ -17,7 +17,7 @@ export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
     console.log('Starting role profile generation for user:', req.userId);
     console.log('Role description length:', req.roleDescription.length);
 
-    // Update user with role description
+    // Update user with role description first
     await forceDB.exec`
       UPDATE users 
       SET role_description = ${req.roleDescription}, updated_at = NOW()
@@ -130,10 +130,13 @@ export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
 
     console.log('Role profile validation passed, saving to database...');
 
-    // Store the target profile
+    // Store the target profile as JSONB
+    const profileJson = JSON.stringify(roleProfile);
+    console.log('Saving profile JSON:', profileJson);
+
     await forceDB.exec`
       UPDATE users 
-      SET target_profile = ${JSON.stringify(roleProfile)}, updated_at = NOW()
+      SET target_profile = ${profileJson}::jsonb, updated_at = NOW()
       WHERE id = ${req.userId}
     `;
 
@@ -151,7 +154,7 @@ export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
       throw new Error('Failed to save role profile to database');
     }
     
-    console.log('Profile save verification successful');
+    console.log('Profile save verification successful. Saved profile:', JSON.stringify(savedUser.target_profile, null, 2));
     return roleProfile;
   }
 );

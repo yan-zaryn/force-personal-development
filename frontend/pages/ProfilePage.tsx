@@ -62,6 +62,9 @@ export default function ProfilePage() {
         ]);
 
         console.log('Profile data loaded successfully');
+        console.log('User response:', userResponse);
+        console.log('User targetProfile:', userResponse.targetProfile);
+        
         setUser(userResponse);
         setEditedName(userResponse.name);
         setEditedRoleDescription(userResponse.roleDescription || '');
@@ -203,6 +206,8 @@ export default function ProfilePage() {
   const skillGaps = getSkillGaps();
   const topSkills = getTopSkills();
   const roleProfile = user.targetProfile as RoleProfile | null;
+
+  console.log('Rendering profile page with roleProfile:', roleProfile);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-0">
@@ -383,7 +388,7 @@ export default function ProfilePage() {
         </TabsContent>
 
         <TabsContent value="role-profile" className="space-y-6">
-          {roleProfile ? (
+          {roleProfile && roleProfile.archetype && roleProfile.skillAreas ? (
             <>
               <Card>
                 <CardHeader>
@@ -419,7 +424,7 @@ export default function ProfilePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {roleProfile.skillAreas?.map((area, areaIndex) => (
+                  {roleProfile.skillAreas.map((area, areaIndex) => (
                     <div key={areaIndex} className="space-y-4">
                       <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -428,7 +433,7 @@ export default function ProfilePage() {
                         <h3 className="text-lg font-semibold text-gray-900">{area.area}</h3>
                       </div>
                       <div className="grid gap-3 ml-10">
-                        {area.skills?.map((skill, skillIndex) => {
+                        {area.skills.map((skill, skillIndex) => {
                           const assessment = skillAssessments.find(a => a.skillId === skill.id);
                           const currentLevel = assessment?.currentLevel || 0;
                           const progress = currentLevel > 0 ? (currentLevel / skill.targetLevel) * 100 : 0;
