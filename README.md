@@ -1,5 +1,5 @@
-📄 PRD – Product Requirements Document
-Project Name: DevForge
+📄 PRD
+Project Name: Force
 Version: 1.0
 Owner: Yan Zaryn
 Platform: Web (Responsive)
