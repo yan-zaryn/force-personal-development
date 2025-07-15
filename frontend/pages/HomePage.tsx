@@ -3,19 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Target, BarChart3, TrendingUp, Brain } from 'lucide-react';
+import { ArrowRight, Target, BarChart3, TrendingUp, Brain, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import backend from '~backend/client';
 
 export default function HomePage() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleGetStarted = async () => {
     if (!email || !name) {
+      setError("Please enter both your name and email to get started.");
       toast({
         title: "Missing Information",
         description: "Please enter both your name and email to get started.",
@@ -24,22 +27,67 @@ export default function HomePage() {
       return;
     }
 
+    if (!email.includes('@')) {
+      setError("Please enter a valid email address.");
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
+    setError(null);
+    
     try {
-      const user = await backend.force.createUser({ email, name });
+      console.log('Creating user with:', { email, name });
+      
+      const user = await backend.force.createUser({ 
+        email: email.trim(), 
+        name: name.trim() 
+      });
+      
+      console.log('User created successfully:', user);
+      
       localStorage.setItem('userId', user.id.toString());
       localStorage.setItem('userName', user.name);
+      localStorage.setItem('userEmail', user.email);
+      
+      toast({
+        title: "Profile Created",
+        description: `Welcome ${user.name}! Let's set up your role profile.`,
+      });
+      
       navigate('/role-profile');
     } catch (error) {
       console.error('Failed to create user:', error);
+      
+      let errorMessage = "Failed to create your profile. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('invalid argument')) {
+          errorMessage = "Please check your input and try again.";
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else if (error.message.includes('internal')) {
+          errorMessage = "Server error. Please try again in a moment.";
+        }
+      }
+      
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: "Failed to create your profile. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTryAgain = () => {
+    setError(null);
   };
 
   const features = [
@@ -90,21 +138,45 @@ export default function HomePage() {
               placeholder="Your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              disabled={isLoading}
             />
             <Input
               type="email"
               placeholder="Your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-            />
-            <Button 
-              onClick={handleGetStarted} 
-              className="w-full"
               disabled={isLoading}
-            >
-              {isLoading ? 'Creating Profile...' : 'Start Your Journey'}
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            />
+            
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="flex space-x-2">
+              <Button 
+                onClick={handleGetStarted} 
+                className="flex-1"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Creating Profile...' : 'Start Your Journey'}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              
+              {error && (
+                <Button 
+                  onClick={handleTryAgain}
+                  variant="outline"
+                  disabled={isLoading}
+                >
+                  Try Again
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

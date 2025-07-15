@@ -25,6 +25,7 @@ const navigation = [
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const userName = localStorage.getItem('userName');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -56,6 +57,12 @@ export default function Layout({ children }: LayoutProps) {
                 })}
               </div>
             </div>
+            
+            {userName && (
+              <div className="flex items-center">
+                <span className="text-sm text-gray-700">Welcome, {userName}</span>
+              </div>
+            )}
           </div>
         </div>
       </nav>
