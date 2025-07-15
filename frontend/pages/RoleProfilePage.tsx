@@ -90,6 +90,7 @@ export default function RoleProfilePage() {
   };
 
   const handleContinue = () => {
+    console.log('Navigating to skill assessment with profile:', roleProfile);
     navigate('/skill-assessment');
   };
 
@@ -170,24 +171,32 @@ export default function RoleProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {roleProfile.skillAreas.map((area, areaIndex) => (
-                <div key={areaIndex} className="space-y-3">
-                  <h3 className="text-lg font-semibold text-gray-900">{area.area}</h3>
-                  <div className="grid gap-3">
-                    {area.skills.map((skill, skillIndex) => (
-                      <div key={skillIndex} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{skill.name}</h4>
-                          <p className="text-sm text-gray-600">{skill.description}</p>
-                        </div>
-                        <Badge variant="secondary">
-                          Target: {skill.targetLevel}/5
-                        </Badge>
-                      </div>
-                    ))}
+              {roleProfile.skillAreas && roleProfile.skillAreas.length > 0 ? (
+                roleProfile.skillAreas.map((area, areaIndex) => (
+                  <div key={areaIndex} className="space-y-3">
+                    <h3 className="text-lg font-semibold text-gray-900">{area.area}</h3>
+                    <div className="grid gap-3">
+                      {area.skills && area.skills.length > 0 ? (
+                        area.skills.map((skill, skillIndex) => (
+                          <div key={skillIndex} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-900">{skill.name}</h4>
+                              <p className="text-sm text-gray-600">{skill.description}</p>
+                            </div>
+                            <Badge variant="secondary">
+                              Target: {skill.targetLevel}/5
+                            </Badge>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500">No skills found for this area.</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500">No skill areas found in the generated profile.</p>
+              )}
               
               <div className="pt-4 border-t">
                 <Button onClick={handleContinue} className="w-full sm:w-auto">

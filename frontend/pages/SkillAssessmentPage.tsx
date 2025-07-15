@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Save } from 'lucide-react';
+import { ArrowRight, Save, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import backend from '~backend/client';
 import type { User, RoleProfile } from '~backend/force/types';
 
@@ -20,6 +21,8 @@ export default function SkillAssessmentPage() {
   const [roleProfile, setRoleProfile] = useState<RoleProfile | null>(null);
   const [ratings, setRatings] = useState<Record<string, SkillRating>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -28,31 +31,43 @@ export default function SkillAssessmentPage() {
   useEffect(() => {
     const loadUserData = async () => {
       if (!userId) {
+        console.log('No userId found, redirecting to home');
         navigate('/');
         return;
       }
 
+      console.log('Loading user data for userId:', userId);
+      setIsLoading(true);
+      setError(null);
+
       try {
         const userData = await backend.force.getUser({ id: parseInt(userId) });
+        console.log('User data loaded:', userData);
         setUser(userData);
         
         if (userData.targetProfile) {
+          console.log('Target profile found:', userData.targetProfile);
           setRoleProfile(userData.targetProfile);
         } else {
+          console.log('No target profile found for user');
+          setError("No role profile found. Please complete your role profile first.");
           toast({
             title: "No Role Profile",
             description: "Please complete your role profile first.",
             variant: "destructive",
           });
-          navigate('/role-profile');
+          // Don't navigate immediately, let user see the error and choose to go back
         }
       } catch (error) {
         console.error('Failed to load user data:', error);
+        setError("Failed to load your profile data. Please try again.");
         toast({
           title: "Error",
           description: "Failed to load your profile. Please try again.",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -119,12 +134,71 @@ export default function SkillAssessmentPage() {
     navigate('/growth-plan');
   };
 
-  if (!roleProfile) {
+  const goToRoleProfile = () => {
+    navigate('/role-profile');
+  };
+
+  if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-0">
         <div className="text-center py-12">
           <p className="text-gray-600">Loading your role profile...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-0">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Skill Assessment</h1>
+          <p className="text-gray-600">
+            Rate your current skill level and provide examples of how you've applied each skill.
+          </p>
+        </div>
+
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error}
+          </AlertDescription>
+        </Alert>
+
+        <div className="mt-6">
+          <Button onClick={goToRoleProfile}>
+            Go to Role Profile
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!roleProfile) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-0">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Skill Assessment</h1>
+          <p className="text-gray-600">
+            Rate your current skill level and provide examples of how you've applied each skill.
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>No Role Profile Found</CardTitle>
+            <CardDescription>
+              You need to complete your role profile before you can assess your skills.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={goToRoleProfile}>
+              Create Role Profile
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -139,73 +213,96 @@ export default function SkillAssessmentPage() {
       </div>
 
       <div className="space-y-6">
-        {roleProfile.skillAreas.map((area, areaIndex) => (
-          <Card key={areaIndex}>
-            <CardHeader>
-              <CardTitle>{area.area}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {area.skills.map((skill, skillIndex) => {
-                const rating = ratings[skill.id] || { skillId: skill.id, currentLevel: 0, examples: '' };
-                
-                return (
-                  <div key={skillIndex} className="space-y-3 p-4 border rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-gray-900">{skill.name}</h4>
-                        <p className="text-sm text-gray-600">{skill.description}</p>
-                      </div>
-                      <Badge variant="outline">Target: {skill.targetLevel}/5</Badge>
-                    </div>
+        {roleProfile.skillAreas && roleProfile.skillAreas.length > 0 ? (
+          roleProfile.skillAreas.map((area, areaIndex) => (
+            <Card key={areaIndex}>
+              <CardHeader>
+                <CardTitle>{area.area}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {area.skills && area.skills.length > 0 ? (
+                  area.skills.map((skill, skillIndex) => {
+                    const rating = ratings[skill.id] || { skillId: skill.id, currentLevel: 0, examples: '' };
                     
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Current Level (1-5)
-                        </label>
-                        <div className="flex space-x-2">
-                          {[1, 2, 3, 4, 5].map((level) => (
-                            <Button
-                              key={level}
-                              variant={rating.currentLevel === level ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => updateRating(skill.id, 'currentLevel', level)}
-                            >
-                              {level}
-                            </Button>
-                          ))}
+                    return (
+                      <div key={skillIndex} className="space-y-3 p-4 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-gray-900">{skill.name}</h4>
+                            <p className="text-sm text-gray-600">{skill.description}</p>
+                          </div>
+                          <Badge variant="outline">Target: {skill.targetLevel}/5</Badge>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Current Level (1-5)
+                            </label>
+                            <div className="flex space-x-2">
+                              {[1, 2, 3, 4, 5].map((level) => (
+                                <Button
+                                  key={level}
+                                  variant={rating.currentLevel === level ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => updateRating(skill.id, 'currentLevel', level)}
+                                >
+                                  {level}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Examples of Application (Optional)
+                            </label>
+                            <Textarea
+                              placeholder="Describe specific examples of how you've used this skill..."
+                              value={rating.examples}
+                              onChange={(e) => updateRating(skill.id, 'examples', e.target.value)}
+                              rows={3}
+                            />
+                          </div>
                         </div>
                       </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Examples of Application (Optional)
-                        </label>
-                        <Textarea
-                          placeholder="Describe specific examples of how you've used this skill..."
-                          value={rating.examples}
-                          onChange={(e) => updateRating(skill.id, 'examples', e.target.value)}
-                          rows={3}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })
+                ) : (
+                  <p className="text-gray-500">No skills found for this area.</p>
+                )}
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>No Skill Areas Found</CardTitle>
+              <CardDescription>
+                Your role profile doesn't contain any skill areas. Please regenerate your role profile.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={goToRoleProfile}>
+                Go to Role Profile
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </CardContent>
           </Card>
-        ))}
+        )}
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button onClick={saveAssessments} variant="outline" disabled={isSaving}>
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? 'Saving...' : 'Save Progress'}
-          </Button>
-          <Button onClick={handleContinue} disabled={isSaving}>
-            Continue to Growth Plan
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </div>
+        {roleProfile.skillAreas && roleProfile.skillAreas.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={saveAssessments} variant="outline" disabled={isSaving}>
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save Progress'}
+            </Button>
+            <Button onClick={handleContinue} disabled={isSaving}>
+              Continue to Growth Plan
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
