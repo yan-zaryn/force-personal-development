@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Lightbulb, Target, Save, Loader2 } from 'lucide-react';
+import { Brain, Lightbulb, Target, Save, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import backend from '~backend/client';
 import type { MentalModelSession } from '~backend/force/types';
 
@@ -13,30 +15,78 @@ export default function MentalModelsPage() {
   const [currentSession, setCurrentSession] = useState<MentalModelSession | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const userId = localStorage.getItem('userId');
 
+  useEffect(() => {
+    if (!userId) {
+      console.log('No userId found, redirecting to home');
+      navigate('/');
+      return;
+    }
+  }, [userId, navigate]);
+
   const analyzeWithMentalModels = async () => {
-    if (!userId || !prompt.trim()) return;
+    if (!userId || !prompt.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter a situation to analyze.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsAnalyzing(true);
+    setError(null);
+    
     try {
+      console.log('Analyzing with mental models for user:', userId);
+      console.log('Prompt:', prompt);
+      
       const session = await backend.force.mentalModelsCoach({
         userId: parseInt(userId),
         prompt: prompt.trim()
       });
 
+      console.log('Mental models session received:', session);
+      
+      // Validate the session structure
+      if (!session || !session.models || !Array.isArray(session.models)) {
+        console.error('Invalid session structure:', session);
+        throw new Error('Invalid response structure from mental models analysis');
+      }
+
       setCurrentSession(session);
       toast({
         title: "Analysis Complete",
-        description: "Generated 5 mental model perspectives on your situation.",
+        description: `Generated ${session.models.length} mental model perspectives on your situation.`,
       });
     } catch (error) {
       console.error('Failed to analyze with mental models:', error);
+      
+      let errorMessage = "Failed to generate mental model analysis. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('API key is invalid')) {
+          errorMessage = "OpenAI API configuration issue. Please contact support.";
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = "Too many requests. Please wait a moment and try again.";
+        } else if (error.message.includes('temporarily unavailable')) {
+          errorMessage = "AI service is temporarily unavailable. Please try again in a few minutes.";
+        } else if (error.message.includes('JSON')) {
+          errorMessage = "There was an issue processing the AI response. Please try again.";
+        } else if (error.message.includes('Invalid')) {
+          errorMessage = "The AI generated an invalid response. Please try rephrasing your situation.";
+        }
+      }
+      
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: "Failed to generate mental model analysis. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -45,7 +95,14 @@ export default function MentalModelsPage() {
   };
 
   const saveToJournal = async () => {
-    if (!userId || !currentSession) return;
+    if (!userId || !currentSession) {
+      toast({
+        title: "Error",
+        description: "No session data to save.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSaving(true);
     try {
@@ -82,7 +139,22 @@ export default function MentalModelsPage() {
   const startNewAnalysis = () => {
     setCurrentSession(null);
     setPrompt('');
+    setError(null);
   };
+
+  const handleTryAgain = () => {
+    setError(null);
+  };
+
+  if (!userId) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-0">
+        <div className="text-center py-12">
+          <p className="text-gray-600">Please log in to access Mental Models Coach.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-0">
@@ -94,6 +166,15 @@ export default function MentalModelsPage() {
       </div>
 
       <div className="space-y-6">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {!currentSession ? (
           <Card>
             <CardHeader>
@@ -113,23 +194,35 @@ export default function MentalModelsPage() {
                 rows={6}
                 className="min-h-[150px]"
               />
-              <Button 
-                onClick={analyzeWithMentalModels}
-                disabled={isAnalyzing || !prompt.trim()}
-                className="w-full sm:w-auto"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Brain className="w-4 h-4 mr-2" />
-                    Analyze with Mental Models
-                  </>
+              <div className="flex space-x-3">
+                <Button 
+                  onClick={analyzeWithMentalModels}
+                  disabled={isAnalyzing || !prompt.trim()}
+                  className="flex-1 sm:flex-none"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="w-4 h-4 mr-2" />
+                      Analyze with Mental Models
+                    </>
+                  )}
+                </Button>
+                
+                {error && (
+                  <Button 
+                    onClick={handleTryAgain}
+                    variant="outline"
+                    disabled={isAnalyzing}
+                  >
+                    Try Again
+                  </Button>
                 )}
-              </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -157,45 +250,69 @@ export default function MentalModelsPage() {
                 </div>
               </div>
 
-              {currentSession.models.map((model, index) => (
-                <Card key={index}>
+              {currentSession.models && currentSession.models.length > 0 ? (
+                currentSession.models.map((model, index) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Badge variant="outline" className="mr-3">
+                          {index + 1}
+                        </Badge>
+                        {model.name || 'Mental Model'}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {model.explanation && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2">Explanation</h4>
+                          <p className="text-gray-700">{model.explanation}</p>
+                        </div>
+                      )}
+                      
+                      {model.newPerspective && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                            <Lightbulb className="w-4 h-4 mr-1" />
+                            New Perspective
+                          </h4>
+                          <p className="text-gray-700">{model.newPerspective}</p>
+                        </div>
+                      )}
+                      
+                      {model.keyInsight && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2">Key Insight</h4>
+                          <p className="text-blue-700 font-medium">{model.keyInsight}</p>
+                        </div>
+                      )}
+                      
+                      {model.practicalAction && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                            <Target className="w-4 h-4 mr-1" />
+                            Practical Action
+                          </h4>
+                          <p className="text-green-700 font-medium">{model.practicalAction}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Badge variant="outline" className="mr-3">
-                        {index + 1}
-                      </Badge>
-                      {model.name}
-                    </CardTitle>
+                    <CardTitle>No Mental Models Generated</CardTitle>
+                    <CardDescription>
+                      The analysis didn't generate any mental models. Please try again with a different description.
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Explanation</h4>
-                      <p className="text-gray-700">{model.explanation}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2 flex items-center">
-                        <Lightbulb className="w-4 h-4 mr-1" />
-                        New Perspective
-                      </h4>
-                      <p className="text-gray-700">{model.newPerspective}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Key Insight</h4>
-                      <p className="text-blue-700 font-medium">{model.keyInsight}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2 flex items-center">
-                        <Target className="w-4 h-4 mr-1" />
-                        Practical Action
-                      </h4>
-                      <p className="text-green-700 font-medium">{model.practicalAction}</p>
-                    </div>
+                  <CardContent>
+                    <Button onClick={startNewAnalysis}>
+                      Try New Analysis
+                    </Button>
                   </CardContent>
                 </Card>
-              ))}
+              )}
             </div>
           </>
         )}
