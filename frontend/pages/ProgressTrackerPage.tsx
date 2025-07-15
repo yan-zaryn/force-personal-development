@@ -31,7 +31,16 @@ export default function ProgressTrackerPage() {
           backend.force.getReflections({ userId: parseInt(userId) })
         ]);
 
-        setSkillAssessments(skillsResponse.assessments);
+        console.log('Loaded skill assessments:', skillsResponse.assessments);
+        
+        // Normalize skill assessments to ensure all target levels are within 1-5 range
+        const normalizedSkills = skillsResponse.assessments.map(skill => ({
+          ...skill,
+          targetLevel: Math.min(5, Math.max(1, skill.targetLevel)),
+          currentLevel: Math.min(5, Math.max(1, skill.currentLevel))
+        }));
+
+        setSkillAssessments(normalizedSkills);
         setGrowthItems(growthResponse.growthItems);
         setReflections(reflectionsResponse.reflections);
       } catch (error) {
@@ -83,7 +92,10 @@ export default function ProgressTrackerPage() {
     if (skillAssessments.length === 0) return 0;
     
     const totalProgress = skillAssessments.reduce((sum, skill) => {
-      return sum + (skill.currentLevel / skill.targetLevel) * 100;
+      // Ensure we're using normalized values (1-5 scale)
+      const normalizedTarget = Math.min(5, Math.max(1, skill.targetLevel));
+      const normalizedCurrent = Math.min(5, Math.max(1, skill.currentLevel));
+      return sum + (normalizedCurrent / normalizedTarget) * 100;
     }, 0);
     
     return Math.round(totalProgress / skillAssessments.length);
@@ -94,7 +106,19 @@ export default function ProgressTrackerPage() {
   };
 
   const getSkillGaps = () => {
-    return skillAssessments.filter(skill => skill.currentLevel < skill.targetLevel);
+    return skillAssessments.filter(skill => {
+      const normalizedTarget = Math.min(5, Math.max(1, skill.targetLevel));
+      const normalizedCurrent = Math.min(5, Math.max(1, skill.currentLevel));
+      return normalizedCurrent < normalizedTarget;
+    });
+  };
+
+  const groupSkillsByArea = () => {
+    return skillAssessments.reduce((acc, skill) => {
+      if (!acc[skill.area]) acc[skill.area] = [];
+      acc[skill.area].push(skill);
+      return acc;
+    }, {} as Record<string, SkillAssessment[]>);
   };
 
   if (isLoading) {
@@ -110,6 +134,7 @@ export default function ProgressTrackerPage() {
   const overallProgress = calculateOverallProgress();
   const completedItems = getCompletedGrowthItems();
   const skillGaps = getSkillGaps();
+  const skillsByArea = groupSkillsByArea();
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-0">
@@ -131,6 +156,9 @@ export default function ProgressTrackerPage() {
             <CardContent>
               <div className="text-2xl font-bold">{overallProgress}%</div>
               <Progress value={overallProgress} className="mt-2" />
+              <p className="text-xs text-muted-foreground mt-1">
+                Average skill development progress
+              </p>
             </CardContent>
           </Card>
 
@@ -161,34 +189,89 @@ export default function ProgressTrackerPage() {
           </Card>
         </div>
 
-        {/* Skill Progress */}
-        {skillAssessments.length > 0 && (
+        {/* Skill Progress by Area */}
+        {Object.keys(skillsByArea).length > 0 && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-gray-900">Skill Progress by Area</h2>
+            {Object.entries(skillsByArea).map(([area, skills]) => (
+              <Card key={area}>
+                <CardHeader>
+                  <CardTitle>{area}</CardTitle>
+                  <CardDescription>
+                    Your progress in {area.toLowerCase()} skills (all skills rated 1-5)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {skills.map((skill) => {
+                    // Ensure we're displaying normalized values (1-5 scale)
+                    const normalizedTarget = Math.min(5, Math.max(1, skill.targetLevel));
+                    const normalizedCurrent = Math.min(5, Math.max(1, skill.currentLevel));
+                    const progress = (normalizedCurrent / normalizedTarget) * 100;
+                    const isComplete = normalizedCurrent >= normalizedTarget;
+                    
+                    return (
+                      <div key={skill.id} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">{skill.name}</h4>
+                            {skill.examples && (
+                              <p className="text-sm text-gray-600 mt-1 line-clamp-2">{skill.examples}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2 ml-4">
+                            <Badge variant={isComplete ? "default" : "secondary"}>
+                              {normalizedCurrent}/5
+                            </Badge>
+                            <span className="text-sm text-gray-500">
+                              (Target: {normalizedTarget}/5)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Progress value={progress} className="h-2" />
+                          <div className="flex justify-between text-xs text-gray-500">
+                            <span>Current: {normalizedCurrent}</span>
+                            <span>Target: {normalizedTarget}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Skills that need improvement */}
+        {skillGaps.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Skill Progress</CardTitle>
+              <CardTitle>Skills Needing Improvement</CardTitle>
               <CardDescription>
-                Your current levels compared to target levels
+                Focus areas where you haven't reached your target level yet
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {skillAssessments.map((skill) => {
-                const progress = (skill.currentLevel / skill.targetLevel) * 100;
-                const isComplete = skill.currentLevel >= skill.targetLevel;
+            <CardContent className="space-y-3">
+              {skillGaps.map((skill) => {
+                const normalizedTarget = Math.min(5, Math.max(1, skill.targetLevel));
+                const normalizedCurrent = Math.min(5, Math.max(1, skill.currentLevel));
+                const gap = normalizedTarget - normalizedCurrent;
                 
                 return (
-                  <div key={skill.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-gray-900">{skill.name}</h4>
-                        <p className="text-sm text-gray-600">{skill.area}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={isComplete ? "default" : "secondary"}>
-                          {skill.currentLevel}/{skill.targetLevel}
-                        </Badge>
-                      </div>
+                  <div key={skill.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <div>
+                      <h4 className="font-medium text-gray-900">{skill.name}</h4>
+                      <p className="text-sm text-gray-600">{skill.area}</p>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="bg-orange-100 text-orange-800">
+                        Gap: {gap} level{gap !== 1 ? 's' : ''}
+                      </Badge>
+                      <Badge variant="secondary">
+                        {normalizedCurrent}/{normalizedTarget}
+                      </Badge>
+                    </div>
                   </div>
                 );
               })}
@@ -228,11 +311,27 @@ export default function ProgressTrackerPage() {
                 {reflections.slice(0, 5).map((reflection) => (
                   <div key={reflection.id} className="p-3 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-900">{reflection.content}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {new Date(reflection.createdAt).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-xs text-gray-500">
+                        {new Date(reflection.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                      <Badge variant="outline" className="text-xs">
+                        {reflection.type.replace('_', ' ')}
+                      </Badge>
+                    </div>
                   </div>
                 ))}
+                {reflections.length > 5 && (
+                  <p className="text-sm text-gray-500 text-center">
+                    And {reflections.length - 5} more reflections...
+                  </p>
+                )}
               </div>
             )}
           </CardContent>
