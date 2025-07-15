@@ -12,6 +12,8 @@ export interface UpdateGrowthItemStatusRequest {
 export const updateGrowthItemStatus = api<UpdateGrowthItemStatusRequest, GrowthItem>(
   { expose: true, method: "PUT", path: "/users/:userId/growth-items/:itemId/status" },
   async (req) => {
+    console.log('Updating growth item status:', req.itemId, 'to', req.status, 'for user:', req.userId);
+    
     const item = await forceDB.queryRow<GrowthItem>`
       UPDATE growth_items 
       SET status = ${req.status}, updated_at = NOW()
@@ -21,9 +23,11 @@ export const updateGrowthItemStatus = api<UpdateGrowthItemStatusRequest, GrowthI
     `;
 
     if (!item) {
+      console.error('Growth item not found:', req.itemId, 'for user:', req.userId);
       throw APIError.notFound("growth item not found");
     }
 
+    console.log('Successfully updated growth item status:', item.id);
     return item;
   }
 );

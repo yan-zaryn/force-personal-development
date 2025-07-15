@@ -16,6 +16,8 @@ export interface SaveSkillAssessmentRequest {
 export const saveSkillAssessment = api<SaveSkillAssessmentRequest, SkillAssessment>(
   { expose: true, method: "POST", path: "/users/:userId/skills" },
   async (req) => {
+    console.log('Saving skill assessment for user:', req.userId, 'skill:', req.skillId);
+    
     const assessment = await forceDB.queryRow<SkillAssessment>`
       INSERT INTO skill_assessments 
         (user_id, skill_id, area, name, target_level, current_level, examples)
@@ -34,9 +36,11 @@ export const saveSkillAssessment = api<SaveSkillAssessmentRequest, SkillAssessme
     `;
 
     if (!assessment) {
+      console.error('Failed to save skill assessment for user:', req.userId, 'skill:', req.skillId);
       throw new Error("Failed to save skill assessment");
     }
 
+    console.log('Successfully saved skill assessment:', assessment.id);
     return assessment;
   }
 );

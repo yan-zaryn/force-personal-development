@@ -14,6 +14,8 @@ export interface MentalModelsCoachRequest {
 export const mentalModelsCoach = api<MentalModelsCoachRequest, MentalModelSession>(
   { expose: true, method: "POST", path: "/users/:userId/mental-models" },
   async (req) => {
+    console.log('Generating mental models analysis for user:', req.userId);
+    
     // Generate mental models analysis using OpenAI
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -53,11 +55,14 @@ Choose diverse mental models that complement each other and provide genuinely di
     });
 
     if (!response.ok) {
+      console.error('OpenAI API error:', response.status, response.statusText);
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
     const analysis = JSON.parse(data.choices[0].message.content);
+
+    console.log('Generated', analysis.models.length, 'mental models');
 
     // Save the session to database
     const session = await forceDB.queryRow<MentalModelSession>`
@@ -67,9 +72,11 @@ Choose diverse mental models that complement each other and provide genuinely di
     `;
 
     if (!session) {
+      console.error('Failed to save mental model session for user:', req.userId);
       throw new Error("Failed to save mental model session");
     }
 
+    console.log('Successfully saved mental model session:', session.id);
     return session;
   }
 );

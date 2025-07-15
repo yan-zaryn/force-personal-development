@@ -138,6 +138,20 @@ export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
     `;
 
     console.log('Role profile saved successfully to database');
+
+    // Verify the profile was saved by querying it back
+    const savedUser = await forceDB.queryRow`
+      SELECT target_profile 
+      FROM users 
+      WHERE id = ${req.userId}
+    `;
+    
+    if (!savedUser || !savedUser.target_profile) {
+      console.error('Failed to verify saved profile');
+      throw new Error('Failed to save role profile to database');
+    }
+    
+    console.log('Profile save verification successful');
     return roleProfile;
   }
 );

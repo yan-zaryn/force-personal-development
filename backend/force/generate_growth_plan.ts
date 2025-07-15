@@ -17,6 +17,8 @@ export interface GenerateGrowthPlanResponse {
 export const generateGrowthPlan = api<GenerateGrowthPlanRequest, GenerateGrowthPlanResponse>(
   { expose: true, method: "POST", path: "/users/:userId/growth-plan" },
   async (req) => {
+    console.log('Generating growth plan for user:', req.userId);
+    
     // Get user's skill assessments
     const assessments: SkillAssessment[] = [];
     for await (const row of forceDB.query<SkillAssessment>`
@@ -30,6 +32,8 @@ export const generateGrowthPlan = api<GenerateGrowthPlanRequest, GenerateGrowthP
       assessments.push(row);
     }
 
+    console.log('Found', assessments.length, 'skill assessments');
+
     // Calculate skill gaps
     const skillGaps = assessments
       .filter(a => a.currentLevel < a.targetLevel)
@@ -41,7 +45,10 @@ export const generateGrowthPlan = api<GenerateGrowthPlanRequest, GenerateGrowthP
         targetLevel: a.targetLevel
       }));
 
+    console.log('Found', skillGaps.length, 'skill gaps');
+
     if (skillGaps.length === 0) {
+      console.log('No skill gaps found, returning empty growth plan');
       return { growthItems: [] };
     }
 
@@ -88,11 +95,14 @@ Provide 3-8 items total, prioritizing the biggest skill gaps.`
     });
 
     if (!response.ok) {
+      console.error('OpenAI API error:', response.status, response.statusText);
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
     const plan = JSON.parse(data.choices[0].message.content);
+
+    console.log('Generated', plan.growthItems.length, 'growth items');
 
     // Save growth items to database
     const growthItems: GrowthItem[] = [];
@@ -105,9 +115,11 @@ Provide 3-8 items total, prioritizing the biggest skill gaps.`
       `;
       if (savedItem) {
         growthItems.push(savedItem);
+        console.log('Saved growth item:', savedItem.id, savedItem.title);
       }
     }
 
+    console.log('Successfully saved', growthItems.length, 'growth items');
     return { growthItems };
   }
 );
