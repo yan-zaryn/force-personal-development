@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import backend from '~backend/client';
 import type { RoleProfile } from '~backend/force/types';
 
@@ -13,6 +14,7 @@ export default function RoleProfilePage() {
   const [roleDescription, setRoleDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [roleProfile, setRoleProfile] = useState<RoleProfile | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -39,6 +41,8 @@ export default function RoleProfilePage() {
     }
 
     setIsGenerating(true);
+    setError(null);
+    
     try {
       console.log('Generating role profile for user:', userId);
       console.log('Role description:', roleDescription);
@@ -59,14 +63,22 @@ export default function RoleProfilePage() {
       console.error('Failed to generate role profile:', error);
       
       let errorMessage = "Failed to generate your role profile. Please try again.";
+      
       if (error instanceof Error) {
-        if (error.message.includes('OpenAI')) {
-          errorMessage = "AI service is currently unavailable. Please try again later.";
+        if (error.message.includes('API key is invalid')) {
+          errorMessage = "OpenAI API configuration issue. Please contact support.";
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = "Too many requests. Please wait a moment and try again.";
+        } else if (error.message.includes('temporarily unavailable')) {
+          errorMessage = "AI service is temporarily unavailable. Please try again in a few minutes.";
+        } else if (error.message.includes('JSON')) {
+          errorMessage = "There was an issue processing the AI response. Please try again.";
         } else if (error.message.includes('Invalid')) {
-          errorMessage = "There was an issue processing your role description. Please try rephrasing it.";
+          errorMessage = "The AI generated an invalid response. Please try rephrasing your role description.";
         }
       }
       
+      setError(errorMessage);
       toast({
         title: "Error",
         description: errorMessage,
@@ -79,6 +91,11 @@ export default function RoleProfilePage() {
 
   const handleContinue = () => {
     navigate('/skill-assessment');
+  };
+
+  const handleTryAgain = () => {
+    setError(null);
+    setRoleProfile(null);
   };
 
   return (
@@ -106,22 +123,43 @@ export default function RoleProfilePage() {
               rows={6}
               className="min-h-[150px]"
             />
-            <Button 
-              onClick={handleGenerateProfile}
-              disabled={isGenerating || !roleDescription.trim()}
-              className="w-full sm:w-auto"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Profile...
-                </>
-              ) : (
-                'Generate Role Profile'
+            <div className="flex space-x-3">
+              <Button 
+                onClick={handleGenerateProfile}
+                disabled={isGenerating || !roleDescription.trim()}
+                className="flex-1 sm:flex-none"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating Profile...
+                  </>
+                ) : (
+                  'Generate Role Profile'
+                )}
+              </Button>
+              
+              {error && (
+                <Button 
+                  onClick={handleTryAgain}
+                  variant="outline"
+                  disabled={isGenerating}
+                >
+                  Try Again
+                </Button>
               )}
-            </Button>
+            </div>
           </CardContent>
         </Card>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {roleProfile && (
           <Card>

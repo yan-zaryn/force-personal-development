@@ -14,26 +14,24 @@ export interface GenerateRoleProfileRequest {
 export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
   { expose: true, method: "POST", path: "/users/:userId/role-profile" },
   async (req) => {
+    console.log('Starting role profile generation for user:', req.userId);
+    console.log('Role description length:', req.roleDescription.length);
+
     // Update user with role description
     await forceDB.exec`
       UPDATE users 
       SET role_description = ${req.roleDescription}, updated_at = NOW()
       WHERE id = ${req.userId}
     `;
+    console.log('Updated user role description in database');
 
     // Generate role profile using OpenAI
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${openAIKey()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert in professional development and skill mapping. Given a role description, create a comprehensive skill map with 4-6 skill areas, each containing 3-5 specific skills. Each skill should have a target proficiency level (1-5 scale). Return only valid JSON in this exact format:
+    const requestBody = {
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert in professional development and skill mapping. Given a role description, create a comprehensive skill map with 4-6 skill areas, each containing 3-5 specific skills. Each skill should have a target proficiency level (1-5 scale). Return only valid JSON in this exact format:
 {
   "archetype": "Role Title",
   "skillAreas": [
@@ -50,43 +48,87 @@ export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
     }
   ]
 }`
-          },
-          {
-            role: "user",
-            content: `Role description: ${req.roleDescription}`
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1500
-      })
+        },
+        {
+          role: "user",
+          content: `Role description: ${req.roleDescription}`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1500
+    };
+
+    console.log('Making OpenAI API request...');
+    
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${openAIKey()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody)
     });
+
+    console.log('OpenAI API response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`OpenAI API error: ${response.status} ${response.statusText}`, errorText);
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      
+      if (response.status === 401) {
+        throw new Error('OpenAI API key is invalid or missing');
+      } else if (response.status === 429) {
+        throw new Error('OpenAI API rate limit exceeded. Please try again later');
+      } else if (response.status === 500) {
+        throw new Error('OpenAI service is temporarily unavailable');
+      } else {
+        throw new Error(`OpenAI API error: ${response.statusText}`);
+      }
     }
 
     const data = await response.json();
+    console.log('OpenAI API response received, parsing...');
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('Invalid OpenAI response structure:', data);
+      console.error('Invalid OpenAI response structure:', JSON.stringify(data, null, 2));
       throw new Error('Invalid response from OpenAI API');
     }
 
+    const messageContent = data.choices[0].message.content;
+    console.log('OpenAI response content:', messageContent);
+
     let roleProfile;
     try {
-      roleProfile = JSON.parse(data.choices[0].message.content);
+      roleProfile = JSON.parse(messageContent);
+      console.log('Successfully parsed role profile:', JSON.stringify(roleProfile, null, 2));
     } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', data.choices[0].message.content);
-      throw new Error('Failed to parse AI response');
+      console.error('Failed to parse OpenAI response as JSON:', messageContent);
+      console.error('Parse error:', parseError);
+      throw new Error('Failed to parse AI response as valid JSON');
     }
 
     // Validate the response structure
     if (!roleProfile.archetype || !roleProfile.skillAreas || !Array.isArray(roleProfile.skillAreas)) {
-      console.error('Invalid role profile structure:', roleProfile);
-      throw new Error('Invalid role profile generated');
+      console.error('Invalid role profile structure:', JSON.stringify(roleProfile, null, 2));
+      throw new Error('Invalid role profile structure generated by AI');
     }
+
+    // Validate skill areas
+    for (const area of roleProfile.skillAreas) {
+      if (!area.area || !area.skills || !Array.isArray(area.skills)) {
+        console.error('Invalid skill area structure:', JSON.stringify(area, null, 2));
+        throw new Error('Invalid skill area structure in role profile');
+      }
+      
+      for (const skill of area.skills) {
+        if (!skill.id || !skill.name || !skill.description || typeof skill.targetLevel !== 'number') {
+          console.error('Invalid skill structure:', JSON.stringify(skill, null, 2));
+          throw new Error('Invalid skill structure in role profile');
+        }
+      }
+    }
+
+    console.log('Role profile validation passed, saving to database...');
 
     // Store the target profile
     await forceDB.exec`
@@ -95,6 +137,7 @@ export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
       WHERE id = ${req.userId}
     `;
 
+    console.log('Role profile saved successfully to database');
     return roleProfile;
   }
 );
