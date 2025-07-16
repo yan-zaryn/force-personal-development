@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowRight, BookOpen, GraduationCap, Target, Zap, ExternalLink, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useLanguage } from '../contexts/LanguageContext';
 import backend from '~backend/client';
 import type { GrowthItem } from '~backend/force/types';
 
@@ -28,6 +29,7 @@ export default function GrowthPlanPage() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const userId = localStorage.getItem('userId');
 
@@ -44,7 +46,7 @@ export default function GrowthPlanPage() {
       } catch (error) {
         console.error('Failed to load growth items:', error);
         toast({
-          title: "Error",
+          title: t('common.error'),
           description: "Failed to load your growth plan. Please try again.",
           variant: "destructive",
         });
@@ -54,7 +56,7 @@ export default function GrowthPlanPage() {
     };
 
     loadGrowthItems();
-  }, [userId, navigate, toast]);
+  }, [userId, navigate, toast, t]);
 
   const generateGrowthPlan = async () => {
     if (!userId) return;
@@ -66,19 +68,19 @@ export default function GrowthPlanPage() {
       
       if (response.growthItems.length > 0) {
         toast({
-          title: "Growth Plan Generated",
-          description: `Generated ${response.growthItems.length} personalized recommendations.`,
+          title: t('growthPlan.generated'),
+          description: t('growthPlan.generatedMessage').replace('{count}', response.growthItems.length.toString()),
         });
       } else {
         toast({
-          title: "No Gaps Found",
-          description: "You're already at your target levels! Consider setting higher goals.",
+          title: t('growthPlan.noGaps'),
+          description: t('growthPlan.noGapsMessage'),
         });
       }
     } catch (error) {
       console.error('Failed to generate growth plan:', error);
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: "Failed to generate your growth plan. Please try again.",
         variant: "destructive",
       });
@@ -102,13 +104,13 @@ export default function GrowthPlanPage() {
       );
 
       toast({
-        title: "Status Updated",
-        description: `Item marked as ${status.replace('_', ' ')}.`,
+        title: t('growthPlan.statusUpdated'),
+        description: t('growthPlan.statusUpdatedMessage').replace('{status}', status.replace('_', ' ')),
       });
     } catch (error) {
       console.error('Failed to update item status:', error);
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: "Failed to update item status. Please try again.",
         variant: "destructive",
       });
@@ -125,7 +127,7 @@ export default function GrowthPlanPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-0">
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading your growth plan...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -134,9 +136,9 @@ export default function GrowthPlanPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Growth Plan</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('growthPlan.title')}</h1>
         <p className="text-gray-600">
-          AI-generated recommendations based on your skill gaps and development goals.
+          {t('growthPlan.subtitle')}
         </p>
       </div>
 
@@ -144,9 +146,9 @@ export default function GrowthPlanPage() {
         {growthItems.length === 0 ? (
           <Card>
             <CardHeader>
-              <CardTitle>Generate Your Growth Plan</CardTitle>
+              <CardTitle>{t('growthPlan.generate')}</CardTitle>
               <CardDescription>
-                Based on your skill assessment, we'll create a personalized development plan.
+                {t('growthPlan.generateDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -154,10 +156,10 @@ export default function GrowthPlanPage() {
                 {isGenerating ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating Plan...
+                    {t('growthPlan.generating')}
                   </>
                 ) : (
-                  'Generate Growth Plan'
+                  t('growthPlan.generateButton')
                 )}
               </Button>
             </CardContent>
@@ -165,22 +167,22 @@ export default function GrowthPlanPage() {
         ) : (
           <>
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">Your Recommendations</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('growthPlan.recommendations')}</h2>
               <Button onClick={generateGrowthPlan} variant="outline" disabled={isGenerating}>
                 {isGenerating ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Regenerating...
+                    {t('growthPlan.regenerating')}
                   </>
                 ) : (
-                  'Regenerate Plan'
+                  t('growthPlan.regenerate')
                 )}
               </Button>
             </div>
 
             {Object.entries(groupedItems).map(([type, items]) => {
               const Icon = typeIcons[type as keyof typeof typeIcons];
-              const typeLabel = type.charAt(0).toUpperCase() + type.slice(1) + 's';
+              const typeLabel = t(`growthPlan.${type}s`);
               
               return (
                 <Card key={type}>
@@ -209,7 +211,7 @@ export default function GrowthPlanPage() {
                           </div>
                           <p className="text-sm text-gray-600">{item.description}</p>
                           <Badge className={statusColors[item.status]}>
-                            {item.status.replace('_', ' ')}
+                            {t(`growthPlan.${item.status.replace('_', '')}`)}
                           </Badge>
                         </div>
                         <Select
@@ -220,9 +222,9 @@ export default function GrowthPlanPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="in_progress">In Progress</SelectItem>
-                            <SelectItem value="done">Done</SelectItem>
+                            <SelectItem value="pending">{t('growthPlan.pending')}</SelectItem>
+                            <SelectItem value="in_progress">{t('growthPlan.inProgress')}</SelectItem>
+                            <SelectItem value="done">{t('growthPlan.done')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -234,7 +236,7 @@ export default function GrowthPlanPage() {
 
             <div className="pt-4">
               <Button onClick={() => navigate('/progress')}>
-                Continue to Progress Tracker
+                {t('growthPlan.continue')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>

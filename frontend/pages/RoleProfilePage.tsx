@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useLanguage } from '../contexts/LanguageContext';
 import backend from '~backend/client';
 import type { RoleProfile } from '~backend/force/types';
 
@@ -17,6 +18,7 @@ export default function RoleProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const userId = localStorage.getItem('userId');
 
@@ -24,7 +26,7 @@ export default function RoleProfilePage() {
     if (!roleDescription.trim()) {
       toast({
         title: "Missing Description",
-        description: "Please describe your current role and responsibilities.",
+        description: t('roleProfile.beSpecific'),
         variant: "destructive",
       });
       return;
@@ -32,7 +34,7 @@ export default function RoleProfilePage() {
 
     if (!userId) {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: "User session not found. Please start over.",
         variant: "destructive",
       });
@@ -80,7 +82,7 @@ export default function RoleProfilePage() {
       
       setError(errorMessage);
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -102,23 +104,23 @@ export default function RoleProfilePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Role Profiler</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('roleProfile.title')}</h1>
         <p className="text-gray-600">
-          Describe your current job and responsibilities to generate a personalized skill map.
+          {t('roleProfile.subtitle')}
         </p>
       </div>
 
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Describe Your Role</CardTitle>
+            <CardTitle>{t('roleProfile.describeRole')}</CardTitle>
             <CardDescription>
-              Be specific about your responsibilities, the decisions you make, and the impact you have.
+              {t('roleProfile.beSpecific')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea
-              placeholder="Example: I'm a Product Manager at a SaaS company. I work with engineering teams to define product roadmaps, analyze user feedback, prioritize features, and coordinate launches. I also work closely with sales and marketing to understand market needs and communicate product value..."
+              placeholder={t('roleProfile.placeholder')}
               value={roleDescription}
               onChange={(e) => setRoleDescription(e.target.value)}
               rows={6}
@@ -133,10 +135,10 @@ export default function RoleProfilePage() {
                 {isGenerating ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating Profile...
+                    {t('roleProfile.generating')}
                   </>
                 ) : (
-                  'Generate Role Profile'
+                  t('roleProfile.generate')
                 )}
               </Button>
               
@@ -146,7 +148,7 @@ export default function RoleProfilePage() {
                   variant="outline"
                   disabled={isGenerating}
                 >
-                  Try Again
+                  {t('common.tryAgain')}
                 </Button>
               )}
             </div>
@@ -165,9 +167,9 @@ export default function RoleProfilePage() {
         {roleProfile && (
           <Card>
             <CardHeader>
-              <CardTitle>Your Role Profile</CardTitle>
+              <CardTitle>{t('roleProfile.yourProfile')}</CardTitle>
               <CardDescription>
-                AI-generated archetype: <strong>{roleProfile.archetype}</strong>
+                {t('roleProfile.archetype')} <strong>{roleProfile.archetype}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -184,7 +186,7 @@ export default function RoleProfilePage() {
                               <p className="text-sm text-gray-600">{skill.description}</p>
                             </div>
                             <Badge variant="secondary">
-                              Target: {skill.targetLevel}/5
+                              {t('roleProfile.target')} {skill.targetLevel}/5
                             </Badge>
                           </div>
                         ))
@@ -200,7 +202,7 @@ export default function RoleProfilePage() {
               
               <div className="pt-4 border-t">
                 <Button onClick={handleContinue} className="w-full sm:w-auto">
-                  Continue to Skill Assessment
+                  {t('roleProfile.continue')}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>

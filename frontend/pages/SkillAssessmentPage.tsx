@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Save, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useLanguage } from '../contexts/LanguageContext';
 import backend from '~backend/client';
 import type { User, RoleProfile } from '~backend/force/types';
 
@@ -25,6 +26,7 @@ export default function SkillAssessmentPage() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const userId = localStorage.getItem('userId');
 
@@ -50,19 +52,18 @@ export default function SkillAssessmentPage() {
           setRoleProfile(userData.targetProfile);
         } else {
           console.log('No target profile found for user');
-          setError("No role profile found. Please complete your role profile first.");
+          setError(t('skillAssessment.needProfile'));
           toast({
-            title: "No Role Profile",
-            description: "Please complete your role profile first.",
+            title: t('skillAssessment.noProfile'),
+            description: t('skillAssessment.needProfile'),
             variant: "destructive",
           });
-          // Don't navigate immediately, let user see the error and choose to go back
         }
       } catch (error) {
         console.error('Failed to load user data:', error);
         setError("Failed to load your profile data. Please try again.");
         toast({
-          title: "Error",
+          title: t('common.error'),
           description: "Failed to load your profile. Please try again.",
           variant: "destructive",
         });
@@ -72,7 +73,7 @@ export default function SkillAssessmentPage() {
     };
 
     loadUserData();
-  }, [userId, navigate, toast]);
+  }, [userId, navigate, toast, t]);
 
   const updateRating = (skillId: string, field: keyof SkillRating, value: number | string) => {
     setRatings(prev => ({
@@ -114,13 +115,13 @@ export default function SkillAssessmentPage() {
       await Promise.all(promises);
       
       toast({
-        title: "Assessment Saved",
-        description: "Your skill assessments have been saved successfully.",
+        title: t('skillAssessment.saved'),
+        description: t('skillAssessment.savedMessage'),
       });
     } catch (error) {
       console.error('Failed to save assessments:', error);
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: "Failed to save your assessments. Please try again.",
         variant: "destructive",
       });
@@ -142,7 +143,7 @@ export default function SkillAssessmentPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-0">
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading your role profile...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -152,9 +153,9 @@ export default function SkillAssessmentPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-0">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Skill Assessment</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('skillAssessment.title')}</h1>
           <p className="text-gray-600">
-            Rate your current skill level and provide examples of how you've applied each skill.
+            {t('skillAssessment.subtitle')}
           </p>
         </div>
 
@@ -167,7 +168,7 @@ export default function SkillAssessmentPage() {
 
         <div className="mt-6">
           <Button onClick={goToRoleProfile}>
-            Go to Role Profile
+            {t('skillAssessment.createProfile')}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
@@ -179,22 +180,22 @@ export default function SkillAssessmentPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-0">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Skill Assessment</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('skillAssessment.title')}</h1>
           <p className="text-gray-600">
-            Rate your current skill level and provide examples of how you've applied each skill.
+            {t('skillAssessment.subtitle')}
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>No Role Profile Found</CardTitle>
+            <CardTitle>{t('skillAssessment.noProfile')}</CardTitle>
             <CardDescription>
-              You need to complete your role profile before you can assess your skills.
+              {t('skillAssessment.needProfile')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={goToRoleProfile}>
-              Create Role Profile
+              {t('skillAssessment.createProfile')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </CardContent>
@@ -206,9 +207,9 @@ export default function SkillAssessmentPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Skill Assessment</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('skillAssessment.title')}</h1>
         <p className="text-gray-600">
-          Rate your current skill level (1-5) and provide examples of how you've applied each skill.
+          {t('skillAssessment.subtitle')}
         </p>
       </div>
 
@@ -231,13 +232,13 @@ export default function SkillAssessmentPage() {
                             <h4 className="font-medium text-gray-900">{skill.name}</h4>
                             <p className="text-sm text-gray-600">{skill.description}</p>
                           </div>
-                          <Badge variant="outline">Target: {skill.targetLevel}/5</Badge>
+                          <Badge variant="outline">{t('roleProfile.target')} {skill.targetLevel}/5</Badge>
                         </div>
                         
                         <div className="space-y-3">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Current Level (1-5)
+                              {t('skillAssessment.currentLevel')}
                             </label>
                             <div className="flex space-x-2">
                               {[1, 2, 3, 4, 5].map((level) => (
@@ -255,10 +256,10 @@ export default function SkillAssessmentPage() {
                           
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Examples of Application (Optional)
+                              {t('skillAssessment.examples')}
                             </label>
                             <Textarea
-                              placeholder="Describe specific examples of how you've used this skill..."
+                              placeholder={t('skillAssessment.examplesPlaceholder')}
                               value={rating.examples}
                               onChange={(e) => updateRating(skill.id, 'examples', e.target.value)}
                               rows={3}
@@ -295,10 +296,10 @@ export default function SkillAssessmentPage() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Button onClick={saveAssessments} variant="outline" disabled={isSaving}>
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save Progress'}
+              {isSaving ? t('skillAssessment.saving') : t('skillAssessment.saveProgress')}
             </Button>
             <Button onClick={handleContinue} disabled={isSaving}>
-              Continue to Growth Plan
+              {t('skillAssessment.continue')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>

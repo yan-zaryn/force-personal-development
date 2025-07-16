@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Calendar, TrendingUp, BookOpen, Save } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useLanguage } from '../contexts/LanguageContext';
 import backend from '~backend/client';
 import type { SkillAssessment, GrowthItem, ReflectionEntry } from '~backend/force/types';
 
@@ -17,6 +18,7 @@ export default function ProgressTrackerPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const userId = localStorage.getItem('userId');
 
@@ -46,7 +48,7 @@ export default function ProgressTrackerPage() {
       } catch (error) {
         console.error('Failed to load progress data:', error);
         toast({
-          title: "Error",
+          title: t('common.error'),
           description: "Failed to load your progress data. Please try again.",
           variant: "destructive",
         });
@@ -56,7 +58,7 @@ export default function ProgressTrackerPage() {
     };
 
     loadProgressData();
-  }, [userId, toast]);
+  }, [userId, toast, t]);
 
   const saveReflection = async () => {
     if (!userId || !newReflection.trim()) return;
@@ -73,13 +75,13 @@ export default function ProgressTrackerPage() {
       setNewReflection('');
       
       toast({
-        title: "Reflection Saved",
-        description: "Your reflection has been added to your journal.",
+        title: t('progress.reflectionSaved'),
+        description: t('progress.reflectionSavedMessage'),
       });
     } catch (error) {
       console.error('Failed to save reflection:', error);
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: "Failed to save your reflection. Please try again.",
         variant: "destructive",
       });
@@ -125,7 +127,7 @@ export default function ProgressTrackerPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-0">
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading your progress...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -139,9 +141,9 @@ export default function ProgressTrackerPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Progress Tracker</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('progress.title')}</h1>
         <p className="text-gray-600">
-          Track your development journey and reflect on your learnings.
+          {t('progress.subtitle')}
         </p>
       </div>
 
@@ -150,40 +152,40 @@ export default function ProgressTrackerPage() {
         <div className="grid md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('progress.overallProgress')}</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{overallProgress}%</div>
               <Progress value={overallProgress} className="mt-2" />
               <p className="text-xs text-muted-foreground mt-1">
-                Average skill development progress
+                {t('progress.averageProgress')}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed Items</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('progress.completedItems')}</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{completedItems}</div>
               <p className="text-xs text-muted-foreground">
-                out of {growthItems.length} total items
+                {t('progress.outOfTotal').replace('{total}', growthItems.length.toString())}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Skill Gaps</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('progress.skillGaps')}</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{skillGaps.length}</div>
               <p className="text-xs text-muted-foreground">
-                areas for improvement
+                {t('progress.areasForImprovement')}
               </p>
             </CardContent>
           </Card>
@@ -192,13 +194,13 @@ export default function ProgressTrackerPage() {
         {/* Skill Progress by Area */}
         {Object.keys(skillsByArea).length > 0 && (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-900">Skill Progress by Area</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('progress.skillsByArea')}</h2>
             {Object.entries(skillsByArea).map(([area, skills]) => (
               <Card key={area}>
                 <CardHeader>
                   <CardTitle>{area}</CardTitle>
                   <CardDescription>
-                    Your progress in {area.toLowerCase()} skills (all skills rated 1-5)
+                    Your progress in {area.toLowerCase()} skills ({t('progress.skillsRated')})
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -223,15 +225,15 @@ export default function ProgressTrackerPage() {
                               {normalizedCurrent}/5
                             </Badge>
                             <span className="text-sm text-gray-500">
-                              (Target: {normalizedTarget}/5)
+                              ({t('progress.target')} {normalizedTarget}/5)
                             </span>
                           </div>
                         </div>
                         <div className="space-y-1">
                           <Progress value={progress} className="h-2" />
                           <div className="flex justify-between text-xs text-gray-500">
-                            <span>Current: {normalizedCurrent}</span>
-                            <span>Target: {normalizedTarget}</span>
+                            <span>{t('progress.current')} {normalizedCurrent}</span>
+                            <span>{t('progress.target')} {normalizedTarget}</span>
                           </div>
                         </div>
                       </div>
@@ -247,9 +249,9 @@ export default function ProgressTrackerPage() {
         {skillGaps.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Skills Needing Improvement</CardTitle>
+              <CardTitle>{t('progress.skillsNeedingImprovement')}</CardTitle>
               <CardDescription>
-                Focus areas where you haven't reached your target level yet
+                {t('progress.focusAreas')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -266,7 +268,7 @@ export default function ProgressTrackerPage() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant="outline" className="bg-orange-100 text-orange-800">
-                        Gap: {gap} level{gap !== 1 ? 's' : ''}
+                        {t('progress.gap')} {gap} {gap !== 1 ? t('progress.levels') : t('progress.level')}
                       </Badge>
                       <Badge variant="secondary">
                         {normalizedCurrent}/{normalizedTarget}
@@ -282,15 +284,15 @@ export default function ProgressTrackerPage() {
         {/* Reflection Journal */}
         <Card>
           <CardHeader>
-            <CardTitle>Reflection Journal</CardTitle>
+            <CardTitle>{t('progress.reflectionJournal')}</CardTitle>
             <CardDescription>
-              Document your learnings, insights, and progress
+              {t('progress.documentLearnings')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <Textarea
-                placeholder="What have you learned recently? What challenges are you facing? What insights have you gained?"
+                placeholder={t('progress.reflectionPlaceholder')}
                 value={newReflection}
                 onChange={(e) => setNewReflection(e.target.value)}
                 rows={4}
@@ -301,13 +303,13 @@ export default function ProgressTrackerPage() {
                 size="sm"
               >
                 <Save className="w-4 h-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Reflection'}
+                {isSaving ? t('progress.saving') : t('progress.saveReflection')}
               </Button>
             </div>
 
             {reflections.length > 0 && (
               <div className="space-y-3 pt-4 border-t">
-                <h4 className="font-medium text-gray-900">Recent Reflections</h4>
+                <h4 className="font-medium text-gray-900">{t('progress.recentReflections')}</h4>
                 {reflections.slice(0, 5).map((reflection) => (
                   <div key={reflection.id} className="p-3 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-900">{reflection.content}</p>
@@ -329,7 +331,7 @@ export default function ProgressTrackerPage() {
                 ))}
                 {reflections.length > 5 && (
                   <p className="text-sm text-gray-500 text-center">
-                    And {reflections.length - 5} more reflections...
+                    {t('progress.moreReflections').replace('{count}', (reflections.length - 5).toString())}
                   </p>
                 )}
               </div>

@@ -24,6 +24,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useLanguage } from '../contexts/LanguageContext';
 import backend from '~backend/client';
 import type { User as UserType, SkillAssessment, GrowthItem, RoleProfile } from '~backend/force/types';
 
@@ -38,6 +39,7 @@ export default function ProfilePage() {
   const [editedRoleDescription, setEditedRoleDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const userId = localStorage.getItem('userId');
@@ -74,7 +76,7 @@ export default function ProfilePage() {
         console.error('Failed to load profile data:', error);
         setError("Failed to load your profile data. Please try again.");
         toast({
-          title: "Error",
+          title: t('common.error'),
           description: "Failed to load your profile data. Please try again.",
           variant: "destructive",
         });
@@ -84,7 +86,7 @@ export default function ProfilePage() {
     };
 
     loadProfileData();
-  }, [userId, toast, navigate]);
+  }, [userId, toast, navigate, t]);
 
   const handleSaveProfile = async () => {
     if (!userId || !user) return;
@@ -105,7 +107,7 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Failed to update profile:', error);
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: "Failed to update your profile. Please try again.",
         variant: "destructive",
       });
@@ -155,7 +157,7 @@ export default function ProfilePage() {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-0">
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading your profile...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -165,9 +167,9 @@ export default function ProfilePage() {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-0">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('profile.title')}</h1>
           <p className="text-gray-600">
-            Manage your professional development profile and track your progress.
+            {t('profile.subtitle')}
           </p>
         </div>
         <Card>
@@ -179,7 +181,7 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <Button onClick={() => window.location.reload()}>
-              Try Again
+              {t('common.tryAgain')}
             </Button>
           </CardContent>
         </Card>
@@ -193,7 +195,7 @@ export default function ProfilePage() {
         <div className="text-center py-12">
           <p className="text-gray-600">Profile not found.</p>
           <Button onClick={() => navigate('/')} className="mt-4">
-            Go Home
+            {t('common.goHome')}
           </Button>
         </div>
       </div>
@@ -212,18 +214,18 @@ export default function ProfilePage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('profile.title')}</h1>
         <p className="text-gray-600">
-          Manage your professional development profile and track your progress.
+          {t('profile.subtitle')}
         </p>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="role-profile">Role Profile</TabsTrigger>
-          <TabsTrigger value="skills">Skills</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="overview">{t('profile.overview')}</TabsTrigger>
+          <TabsTrigger value="role-profile">{t('profile.roleProfile')}</TabsTrigger>
+          <TabsTrigger value="skills">{t('profile.skills')}</TabsTrigger>
+          <TabsTrigger value="settings">{t('profile.settings')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -245,7 +247,7 @@ export default function ProfilePage() {
                 </div>
                 <Badge variant="outline" className="flex items-center">
                   <Calendar className="w-4 h-4 mr-1" />
-                  Member since {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                  {t('profile.memberSince')} {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                 </Badge>
               </div>
             </CardHeader>
@@ -254,7 +256,7 @@ export default function ProfilePage() {
                 <div className="flex items-start space-x-2">
                   <Briefcase className="w-5 h-5 text-gray-500 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-1">Current Role</h4>
+                    <h4 className="font-medium text-gray-900 mb-1">{t('profile.currentRole')}</h4>
                     <p className="text-gray-700 text-sm leading-relaxed">{user.roleDescription}</p>
                   </div>
                 </div>
@@ -266,40 +268,40 @@ export default function ProfilePage() {
           <div className="grid md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('progress.overallProgress')}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{overallProgress}%</div>
                 <Progress value={overallProgress} className="mt-2" />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Skill development progress
+                  {t('progress.averageProgress')}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Completed Actions</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('progress.completedItems')}</CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{completedItems}</div>
                 <p className="text-xs text-muted-foreground">
-                  out of {growthItems.length} total items
+                  {t('progress.outOfTotal').replace('{total}', growthItems.length.toString())}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Skill Gaps</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('progress.skillGaps')}</CardTitle>
                 <Award className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{skillGaps.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  areas for improvement
+                  {t('progress.areasForImprovement')}
                 </p>
               </CardContent>
             </Card>
@@ -312,7 +314,7 @@ export default function ProfilePage() {
               <CardContent>
                 <div className="text-2xl font-bold">{topSkills.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  at target level
+                  {t('profile.atTargetLevel')}
                 </p>
               </CardContent>
             </Card>
@@ -322,9 +324,9 @@ export default function ProfilePage() {
           {topSkills.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Your Strengths</CardTitle>
+                <CardTitle>{t('profile.yourStrengths')}</CardTitle>
                 <CardDescription>
-                  Skills where you've reached or exceeded your target level
+                  {t('profile.strengthsDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -349,9 +351,9 @@ export default function ProfilePage() {
           {growthItems.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Recent Growth Activities</CardTitle>
+                <CardTitle>{t('profile.recentGrowthActivities')}</CardTitle>
                 <CardDescription>
-                  Your latest development activities and their status
+                  {t('profile.recentActivitiesDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -378,7 +380,7 @@ export default function ProfilePage() {
                   ))}
                   {growthItems.length > 5 && (
                     <p className="text-sm text-gray-500 text-center pt-2">
-                      And {growthItems.length - 5} more items...
+                      {t('profile.moreItems').replace('{count}', (growthItems.length - 5).toString())}
                     </p>
                   )}
                 </div>
@@ -394,12 +396,12 @@ export default function ProfilePage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Role Archetype</CardTitle>
-                      <CardDescription>AI-generated professional profile</CardDescription>
+                      <CardTitle>{t('profile.roleArchetype')}</CardTitle>
+                      <CardDescription>{t('profile.aiGeneratedProfile')}</CardDescription>
                     </div>
                     <Button onClick={handleRegenerateProfile} variant="outline" size="sm">
                       <RefreshCw className="w-4 h-4 mr-2" />
-                      Regenerate
+                      {t('profile.regenerate')}
                     </Button>
                   </div>
                 </CardHeader>
@@ -418,9 +420,9 @@ export default function ProfilePage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Skill Map</CardTitle>
+                  <CardTitle>{t('profile.skillMap')}</CardTitle>
                   <CardDescription>
-                    Comprehensive breakdown of skills required for your role
+                    {t('profile.skillMapDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -451,11 +453,11 @@ export default function ProfilePage() {
                               </div>
                               <div className="ml-4 flex items-center space-x-2">
                                 <Badge variant="outline">
-                                  Target: {skill.targetLevel}/5
+                                  {t('roleProfile.target')} {skill.targetLevel}/5
                                 </Badge>
                                 {currentLevel > 0 && (
                                   <Badge variant={currentLevel >= skill.targetLevel ? "default" : "secondary"}>
-                                    Current: {currentLevel}/5
+                                    {t('progress.current')} {currentLevel}/5
                                   </Badge>
                                 )}
                               </div>
@@ -471,15 +473,15 @@ export default function ProfilePage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>No Role Profile</CardTitle>
+                <CardTitle>{t('profile.noRoleProfile')}</CardTitle>
                 <CardDescription>
-                  You haven't created a role profile yet. Generate one to get started.
+                  {t('profile.noRoleProfileDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button onClick={handleRegenerateProfile}>
                   <Target className="w-4 h-4 mr-2" />
-                  Create Role Profile
+                  {t('profile.createRoleProfile')}
                 </Button>
               </CardContent>
             </Card>
@@ -526,15 +528,15 @@ export default function ProfilePage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>No Skills Assessed</CardTitle>
+                <CardTitle>{t('profile.noSkillsAssessed')}</CardTitle>
                 <CardDescription>
-                  Complete your skill assessment to see your progress here.
+                  {t('profile.noSkillsDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button onClick={() => navigate('/skill-assessment')}>
                   <BarChart3 className="w-4 h-4 mr-2" />
-                  Start Skill Assessment
+                  {t('profile.startSkillAssessment')}
                 </Button>
               </CardContent>
             </Card>
@@ -546,22 +548,22 @@ export default function ProfilePage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Profile Information</CardTitle>
+                  <CardTitle>{t('profile.profileInformation')}</CardTitle>
                   <CardDescription>
-                    Update your personal information and role description
+                    {t('profile.updateInformation')}
                   </CardDescription>
                 </div>
                 {!isEditing && (
                   <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
                     <Edit3 className="w-4 h-4 mr-2" />
-                    Edit
+                    {t('profile.edit')}
                   </Button>
                 )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Name</label>
+                <label className="text-sm font-medium text-gray-700">{t('profile.name')}</label>
                 {isEditing ? (
                   <Input
                     value={editedName}
@@ -574,15 +576,15 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Email</label>
+                <label className="text-sm font-medium text-gray-700">{t('profile.email')}</label>
                 <p className="text-gray-600 text-sm">{user.email}</p>
-                <p className="text-xs text-gray-500">Email cannot be changed</p>
+                <p className="text-xs text-gray-500">{t('profile.emailCannotChange')}</p>
               </div>
 
               <Separator />
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Role Description</label>
+                <label className="text-sm font-medium text-gray-700">{t('profile.roleDescription')}</label>
                 {isEditing ? (
                   <Textarea
                     value={editedRoleDescription}
@@ -591,7 +593,7 @@ export default function ProfilePage() {
                     rows={4}
                   />
                 ) : (
-                  <p className="text-gray-900">{user.roleDescription || 'No role description provided'}</p>
+                  <p className="text-gray-900">{user.roleDescription || t('profile.noRoleDescription')}</p>
                 )}
               </div>
 
@@ -599,7 +601,7 @@ export default function ProfilePage() {
                 <div className="flex space-x-3 pt-4">
                   <Button onClick={handleSaveProfile} disabled={isSaving}>
                     <Save className="w-4 h-4 mr-2" />
-                    {isSaving ? 'Saving...' : 'Save Changes'}
+                    {isSaving ? 'Saving...' : t('profile.saveChanges')}
                   </Button>
                   <Button 
                     onClick={() => {
@@ -609,7 +611,7 @@ export default function ProfilePage() {
                     }} 
                     variant="outline"
                   >
-                    Cancel
+                    {t('profile.cancel')}
                   </Button>
                 </div>
               )}
@@ -618,19 +620,19 @@ export default function ProfilePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Account Information</CardTitle>
+              <CardTitle>{t('profile.accountInformation')}</CardTitle>
               <CardDescription>
-                Your account details and membership information
+                {t('profile.accountDetails')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Member Since</label>
+                  <label className="text-sm font-medium text-gray-700">{t('profile.memberSince')}</label>
                   <p className="text-gray-900">{new Date(user.createdAt).toLocaleDateString()}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Last Updated</label>
+                  <label className="text-sm font-medium text-gray-700">{t('profile.lastUpdated')}</label>
                   <p className="text-gray-900">{new Date(user.updatedAt).toLocaleDateString()}</p>
                 </div>
               </div>
@@ -639,11 +641,11 @@ export default function ProfilePage() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Skills Assessed</label>
+                  <label className="text-sm font-medium text-gray-700">{t('profile.skillsAssessed')}</label>
                   <p className="text-gray-900">{skillAssessments.length}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Growth Items</label>
+                  <label className="text-sm font-medium text-gray-700">{t('profile.growthItems')}</label>
                   <p className="text-gray-900">{growthItems.length}</p>
                 </div>
               </div>
@@ -652,24 +654,24 @@ export default function ProfilePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Data Management</CardTitle>
+              <CardTitle>{t('profile.dataManagement')}</CardTitle>
               <CardDescription>
-                Manage your profile data and regenerate content
+                {t('profile.manageData')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col space-y-3">
                 <Button onClick={handleRegenerateProfile} variant="outline" className="justify-start">
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Regenerate Role Profile
+                  {t('profile.regenerateRoleProfile')}
                 </Button>
                 <Button onClick={() => navigate('/skill-assessment')} variant="outline" className="justify-start">
                   <BarChart3 className="w-4 h-4 mr-2" />
-                  Update Skill Assessment
+                  {t('profile.updateSkillAssessment')}
                 </Button>
                 <Button onClick={() => navigate('/growth-plan')} variant="outline" className="justify-start">
                   <TrendingUp className="w-4 h-4 mr-2" />
-                  Regenerate Growth Plan
+                  {t('profile.regenerateGrowthPlan')}
                 </Button>
               </div>
             </CardContent>

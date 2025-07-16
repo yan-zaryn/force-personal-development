@@ -9,22 +9,25 @@ import {
   Brain, 
   Settings 
 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from './LanguageSelector';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 const navigation = [
-  { name: 'Home', href: '/', icon: User },
-  { name: 'Role Profile', href: '/role-profile', icon: Target },
-  { name: 'Skills', href: '/skill-assessment', icon: BarChart3 },
-  { name: 'Growth Plan', href: '/growth-plan', icon: TrendingUp },
-  { name: 'Progress', href: '/progress', icon: Settings },
-  { name: 'Mental Models', href: '/mental-models', icon: Brain },
+  { name: 'nav.home', href: '/', icon: User },
+  { name: 'nav.roleProfile', href: '/role-profile', icon: Target },
+  { name: 'nav.skills', href: '/skill-assessment', icon: BarChart3 },
+  { name: 'nav.growthPlan', href: '/growth-plan', icon: TrendingUp },
+  { name: 'nav.progress', href: '/progress', icon: Settings },
+  { name: 'nav.mentalModels', href: '/mental-models', icon: Brain },
 ];
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,14 +53,15 @@ export default function Layout({ children }: LayoutProps) {
                       )}
                     >
                       <Icon className="w-4 h-4 mr-2" />
-                      {item.name}
+                      {t(item.name)}
                     </Link>
                   );
                 })}
               </div>
             </div>
             
-            <div className="flex items-center">
+            <div className="flex items-center space-x-3">
+              <LanguageSelector />
               <Link
                 to="/profile"
                 className={cn(
@@ -68,7 +72,7 @@ export default function Layout({ children }: LayoutProps) {
                 )}
               >
                 <User className="w-4 h-4 mr-1" />
-                Profile
+                {t('nav.profile')}
               </Link>
             </div>
           </div>

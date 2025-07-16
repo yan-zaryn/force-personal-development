@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowRight, Target, BarChart3, TrendingUp, Brain, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useLanguage } from '../contexts/LanguageContext';
 import backend from '~backend/client';
 
 export default function HomePage() {
@@ -15,23 +16,24 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleGetStarted = async () => {
     if (!email || !name) {
-      setError("Please enter both your name and email to get started.");
+      setError(t('home.missingInfo'));
       toast({
-        title: "Missing Information",
-        description: "Please enter both your name and email to get started.",
+        title: t('home.missingInfo'),
+        description: t('home.missingInfo'),
         variant: "destructive",
       });
       return;
     }
 
     if (!email.includes('@')) {
-      setError("Please enter a valid email address.");
+      setError(t('home.invalidEmail'));
       toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address.",
+        title: t('home.invalidEmail'),
+        description: t('home.invalidEmail'),
         variant: "destructive",
       });
       return;
@@ -55,15 +57,15 @@ export default function HomePage() {
       localStorage.setItem('userEmail', user.email);
       
       toast({
-        title: "Profile Created",
-        description: `Welcome ${user.name}! Let's set up your role profile.`,
+        title: t('home.profileCreated'),
+        description: t('home.welcomeMessage').replace('{name}', user.name),
       });
       
       navigate('/role-profile');
     } catch (error) {
       console.error('Failed to create user:', error);
       
-      let errorMessage = "Failed to create your profile. Please try again.";
+      let errorMessage = t('home.error');
       
       if (error instanceof Error) {
         if (error.message.includes('invalid argument')) {
@@ -77,7 +79,7 @@ export default function HomePage() {
       
       setError(errorMessage);
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -93,23 +95,23 @@ export default function HomePage() {
   const features = [
     {
       icon: Target,
-      title: "Role Profiler",
-      description: "AI-generated skill map based on your role and responsibilities"
+      title: t('feature.roleProfiler.title'),
+      description: t('feature.roleProfiler.description')
     },
     {
       icon: BarChart3,
-      title: "Skill Assessment",
-      description: "Self-assess your current abilities and identify growth areas"
+      title: t('feature.skillAssessment.title'),
+      description: t('feature.skillAssessment.description')
     },
     {
       icon: TrendingUp,
-      title: "Growth Plan",
-      description: "Personalized recommendations for books, courses, and practices"
+      title: t('feature.growthPlan.title'),
+      description: t('feature.growthPlan.description')
     },
     {
       icon: Brain,
-      title: "Mental Models Coach",
-      description: "AI-powered decision support using proven mental frameworks"
+      title: t('feature.mentalModels.title'),
+      description: t('feature.mentalModels.description')
     }
   ];
 
@@ -117,32 +119,31 @@ export default function HomePage() {
     <div className="px-4 sm:px-0">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Master Your Professional Growth
+          {t('home.title')}
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          A personal development system that helps professionals articulate their role, 
-          assess growth areas, and follow a data-informed path toward mastery.
+          {t('home.subtitle')}
         </p>
       </div>
 
       <div className="max-w-md mx-auto mb-16">
         <Card>
           <CardHeader>
-            <CardTitle>Get Started</CardTitle>
+            <CardTitle>{t('home.getStarted')}</CardTitle>
             <CardDescription>
-              Create your profile to begin your growth journey
+              {t('home.createProfile')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
-              placeholder="Your name"
+              placeholder={t('home.namePlaceholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
             />
             <Input
               type="email"
-              placeholder="Your email"
+              placeholder={t('home.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -163,7 +164,7 @@ export default function HomePage() {
                 className="flex-1"
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating Profile...' : 'Start Your Journey'}
+                {isLoading ? t('home.creatingProfile') : t('home.startJourney')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
               
@@ -173,7 +174,7 @@ export default function HomePage() {
                   variant="outline"
                   disabled={isLoading}
                 >
-                  Try Again
+                  {t('home.tryAgain')}
                 </Button>
               )}
             </div>
