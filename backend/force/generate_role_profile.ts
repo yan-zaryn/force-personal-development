@@ -25,29 +25,71 @@ export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
     `;
     console.log('Updated user role description in database');
 
-    // Generate role profile using OpenAI
+    // Detect the language of the input to ensure response is in the same language
+    const detectLanguagePrompt = `Detect the language of this text and respond with just the language name in English: "${req.roleDescription.substring(0, 200)}"`;
+    
+    console.log('Detecting input language...');
+    const languageDetectionResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${openAIKey()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "user",
+            content: detectLanguagePrompt
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 50
+      })
+    });
+
+    let detectedLanguage = "English"; // Default fallback
+    if (languageDetectionResponse.ok) {
+      try {
+        const languageData = await languageDetectionResponse.json();
+        detectedLanguage = languageData.choices[0].message.content.trim();
+        console.log('Detected language:', detectedLanguage);
+      } catch (error) {
+        console.warn('Failed to detect language, using English as default:', error);
+      }
+    } else {
+      console.warn('Language detection API call failed, using English as default');
+    }
+
+    // Generate role profile using OpenAI with language-aware prompt
     const requestBody = {
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: `You are an expert in professional development and skill mapping. Given a role description, create a comprehensive skill map with 4-6 skill areas, each containing 3-5 specific skills. Each skill should have a target proficiency level (1-5 scale). Return only valid JSON in this exact format:
+          content: `You are an expert in professional development and skill mapping. Given a role description, create a comprehensive skill map with 4-6 skill areas, each containing 3-5 specific skills. Each skill should have a target proficiency level (1-5 scale).
+
+IMPORTANT: Respond in ${detectedLanguage}. All field names, descriptions, and content should be in ${detectedLanguage}, matching the language of the input role description.
+
+Return only valid JSON in this exact format:
 {
-  "archetype": "Role Title",
+  "archetype": "Role Title in ${detectedLanguage}",
   "skillAreas": [
     {
-      "area": "Area Name",
+      "area": "Area Name in ${detectedLanguage}",
       "skills": [
         {
-          "id": "unique_skill_id",
-          "name": "Skill Name",
-          "description": "Brief description",
+          "id": "unique_skill_id_in_english",
+          "name": "Skill Name in ${detectedLanguage}",
+          "description": "Brief description in ${detectedLanguage}",
           "targetLevel": 3
         }
       ]
     }
   ]
-}`
+}
+
+Note: Keep the "id" field in English using underscores (for technical compatibility), but all other text should be in ${detectedLanguage}.`
         },
         {
           role: "user",
@@ -58,7 +100,7 @@ export const generateRoleProfile = api<GenerateRoleProfileRequest, RoleProfile>(
       max_tokens: 1500
     };
 
-    console.log('Making OpenAI API request...');
+    console.log('Making OpenAI API request for role profile generation...');
     
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
