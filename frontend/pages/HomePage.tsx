@@ -7,9 +7,10 @@ import { ArrowRight, Target, BarChart3, TrendingUp, Brain, AlertCircle } from 'l
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '../contexts/LanguageContext';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import backend from '~backend/client';
 
-export default function HomePage() {
+function HomePageContent() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -199,5 +200,13 @@ export default function HomePage() {
         })}
       </div>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <ErrorBoundary>
+      <HomePageContent />
+    </ErrorBoundary>
   );
 }

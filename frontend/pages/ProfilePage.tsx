@@ -25,10 +25,12 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '../contexts/LanguageContext';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { ProfileSkeleton, SkillsSkeleton } from '../components/LoadingSkeleton';
 import backend from '~backend/client';
 import type { User as UserType, SkillAssessment, GrowthItem, RoleProfile } from '~backend/force/types';
 
-export default function ProfilePage() {
+function ProfileContent() {
   const [user, setUser] = useState<UserType | null>(null);
   const [skillAssessments, setSkillAssessments] = useState<SkillAssessment[]>([]);
   const [growthItems, setGrowthItems] = useState<GrowthItem[]>([]);
@@ -156,9 +158,11 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-0">
-        <div className="text-center py-12">
-          <p className="text-gray-600">{t('common.loading')}</p>
+        <div className="mb-8">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-2 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
         </div>
+        <ProfileSkeleton />
       </div>
     );
   }
@@ -679,5 +683,13 @@ export default function ProfilePage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <ErrorBoundary>
+      <ProfileContent />
+    </ErrorBoundary>
   );
 }

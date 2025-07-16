@@ -8,10 +8,12 @@ import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '../contexts/LanguageContext';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { FormSkeleton, CardSkeleton } from '../components/LoadingSkeleton';
 import backend from '~backend/client';
 import type { RoleProfile } from '~backend/force/types';
 
-export default function RoleProfilePage() {
+function RoleProfileContent() {
   const [roleDescription, setRoleDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [roleProfile, setRoleProfile] = useState<RoleProfile | null>(null);
@@ -164,7 +166,13 @@ export default function RoleProfilePage() {
           </Alert>
         )}
 
-        {roleProfile && (
+        {isGenerating && (
+          <div className="space-y-4">
+            <CardSkeleton />
+          </div>
+        )}
+
+        {roleProfile && !isGenerating && (
           <Card>
             <CardHeader>
               <CardTitle>{t('roleProfile.yourProfile')}</CardTitle>
@@ -211,5 +219,13 @@ export default function RoleProfilePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function RoleProfilePage() {
+  return (
+    <ErrorBoundary>
+      <RoleProfileContent />
+    </ErrorBoundary>
   );
 }

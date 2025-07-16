@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowRight, BookOpen, GraduationCap, Target, Zap, ExternalLink, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '../contexts/LanguageContext';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { GrowthItemsSkeleton } from '../components/LoadingSkeleton';
 import backend from '~backend/client';
 import type { GrowthItem } from '~backend/force/types';
 
@@ -23,7 +25,7 @@ const statusColors = {
   done: 'bg-green-100 text-green-800',
 };
 
-export default function GrowthPlanPage() {
+function GrowthPlanContent() {
   const [growthItems, setGrowthItems] = useState<GrowthItem[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -126,9 +128,11 @@ export default function GrowthPlanPage() {
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-0">
-        <div className="text-center py-12">
-          <p className="text-gray-600">{t('common.loading')}</p>
+        <div className="mb-8">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-2 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
         </div>
+        <GrowthItemsSkeleton count={3} />
       </div>
     );
   }
@@ -244,5 +248,13 @@ export default function GrowthPlanPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function GrowthPlanPage() {
+  return (
+    <ErrorBoundary>
+      <GrowthPlanContent />
+    </ErrorBoundary>
   );
 }

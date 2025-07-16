@@ -8,15 +8,18 @@ import { Brain, Lightbulb, Target, Save, Loader2, AlertCircle } from 'lucide-rea
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '../contexts/LanguageContext';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { FormSkeleton, CardSkeleton } from '../components/LoadingSkeleton';
 import backend from '~backend/client';
 import type { MentalModelSession } from '~backend/force/types';
 
-export default function MentalModelsPage() {
+function MentalModelsContent() {
   const [prompt, setPrompt] = useState('');
   const [currentSession, setCurrentSession] = useState<MentalModelSession | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -29,6 +32,7 @@ export default function MentalModelsPage() {
       navigate('/');
       return;
     }
+    setIsLoading(false);
   }, [userId, navigate]);
 
   const analyzeWithMentalModels = async () => {
@@ -147,6 +151,18 @@ export default function MentalModelsPage() {
   const handleTryAgain = () => {
     setError(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-0">
+        <div className="mb-8">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-2 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        </div>
+        <FormSkeleton />
+      </div>
+    );
+  }
 
   if (!userId) {
     return (
@@ -320,5 +336,13 @@ export default function MentalModelsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function MentalModelsPage() {
+  return (
+    <ErrorBoundary>
+      <MentalModelsContent />
+    </ErrorBoundary>
   );
 }
