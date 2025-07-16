@@ -69,11 +69,11 @@ export default function HomePage() {
       
       if (error instanceof Error) {
         if (error.message.includes('invalid argument')) {
-          errorMessage = "Please check your input and try again.";
+          errorMessage = t('home.errorInput');
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = "Network error. Please check your connection and try again.";
+          errorMessage = t('home.errorNetwork');
         } else if (error.message.includes('internal')) {
-          errorMessage = "Server error. Please try again in a moment.";
+          errorMessage = t('home.errorServer');
         }
       }
       

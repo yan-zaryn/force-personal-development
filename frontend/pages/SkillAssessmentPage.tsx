@@ -270,7 +270,7 @@ export default function SkillAssessmentPage() {
                     );
                   })
                 ) : (
-                  <p className="text-gray-500">No skills found for this area.</p>
+                  <p className="text-gray-500">{t('skillAssessment.noSkillsInArea')}</p>
                 )}
               </CardContent>
             </Card>
@@ -278,14 +278,14 @@ export default function SkillAssessmentPage() {
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle>No Skill Areas Found</CardTitle>
+              <CardTitle>{t('skillAssessment.noSkillAreas')}</CardTitle>
               <CardDescription>
-                Your role profile doesn't contain any skill areas. Please regenerate your role profile.
+                {t('skillAssessment.noSkillAreasMessage')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={goToRoleProfile}>
-                Go to Role Profile
+                {t('skillAssessment.goToRoleProfile')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>

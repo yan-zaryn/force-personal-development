@@ -200,7 +200,7 @@ export default function ProgressTrackerPage() {
                 <CardHeader>
                   <CardTitle>{area}</CardTitle>
                   <CardDescription>
-                    Your progress in {area.toLowerCase()} skills ({t('progress.skillsRated')})
+                    {t('progress.yourProgressIn').replace('{area}', area.toLowerCase())} ({t('progress.skillsRated')})
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

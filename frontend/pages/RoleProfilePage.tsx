@@ -25,7 +25,7 @@ export default function RoleProfilePage() {
   const handleGenerateProfile = async () => {
     if (!roleDescription.trim()) {
       toast({
-        title: "Missing Description",
+        title: t('roleProfile.missingDescription'),
         description: t('roleProfile.beSpecific'),
         variant: "destructive",
       });
@@ -58,8 +58,8 @@ export default function RoleProfilePage() {
       setRoleProfile(profile);
       
       toast({
-        title: "Profile Generated",
-        description: "Your role profile has been successfully created!",
+        title: t('roleProfile.profileGenerated'),
+        description: t('roleProfile.profileGeneratedMessage'),
       });
     } catch (error) {
       console.error('Failed to generate role profile:', error);
@@ -191,7 +191,7 @@ export default function RoleProfilePage() {
                           </div>
                         ))
                       ) : (
-                        <p className="text-gray-500">No skills found for this area.</p>
+                        <p className="text-gray-500">{t('skillAssessment.noSkillsInArea')}</p>
                       )}
                     </div>
                   </div>

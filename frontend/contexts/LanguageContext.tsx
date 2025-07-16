@@ -62,6 +62,9 @@ const translations = {
     'home.profileCreated': 'Profile Created',
     'home.welcomeMessage': 'Welcome {name}! Let\'s set up your role profile.',
     'home.error': 'Failed to create your profile. Please try again.',
+    'home.errorNetwork': 'Network error. Please check your connection and try again.',
+    'home.errorServer': 'Server error. Please try again in a moment.',
+    'home.errorInput': 'Please check your input and try again.',
 
     // Features
     'feature.roleProfiler.title': 'Role Profiler',
@@ -85,6 +88,9 @@ const translations = {
     'roleProfile.archetype': 'AI-generated archetype:',
     'roleProfile.continue': 'Continue to Skill Assessment',
     'roleProfile.target': 'Target:',
+    'roleProfile.missingDescription': 'Missing Description',
+    'roleProfile.profileGenerated': 'Profile Generated',
+    'roleProfile.profileGeneratedMessage': 'Your role profile has been successfully created!',
 
     // Skill Assessment Page
     'skillAssessment.title': 'Skill Assessment',
@@ -100,6 +106,10 @@ const translations = {
     'skillAssessment.createProfile': 'Create Role Profile',
     'skillAssessment.saved': 'Assessment Saved',
     'skillAssessment.savedMessage': 'Your skill assessments have been saved successfully.',
+    'skillAssessment.noSkillAreas': 'No Skill Areas Found',
+    'skillAssessment.noSkillAreasMessage': 'Your role profile doesn\'t contain any skill areas. Please regenerate your role profile.',
+    'skillAssessment.goToRoleProfile': 'Go to Role Profile',
+    'skillAssessment.noSkillsInArea': 'No skills found for this area.',
 
     // Growth Plan Page
     'growthPlan.title': 'Growth Plan',
@@ -153,6 +163,7 @@ const translations = {
     'progress.moreReflections': 'And {count} more reflections...',
     'progress.reflectionSaved': 'Reflection Saved',
     'progress.reflectionSavedMessage': 'Your reflection has been added to your journal.',
+    'progress.yourProgressIn': 'Your progress in {area} skills',
 
     // Mental Models Page
     'mentalModels.title': 'Mental Models Coach',
@@ -174,6 +185,13 @@ const translations = {
     'mentalModels.analysisCompleteMessage': 'Generated {count} mental model perspectives on your situation.',
     'mentalModels.savedToJournal': 'Saved to Journal',
     'mentalModels.savedToJournalMessage': 'Mental model analysis has been saved to your reflection journal.',
+    'mentalModels.missingInformation': 'Missing Information',
+    'mentalModels.noSessionData': 'No session data to save.',
+    'mentalModels.saveError': 'Failed to save analysis to journal. Please try again.',
+    'mentalModels.loginRequired': 'Please log in to access Mental Models Coach.',
+    'mentalModels.noModelsGenerated': 'No Mental Models Generated',
+    'mentalModels.noModelsGeneratedMessage': 'The analysis didn\'t generate any mental models. Please try again with a different description.',
+    'mentalModels.tryNewAnalysis': 'Try New Analysis',
 
     // Profile Page
     'profile.title': 'Profile',
@@ -221,6 +239,12 @@ const translations = {
     'profile.updateSkillAssessment': 'Update Skill Assessment',
     'profile.regenerateGrowthPlan': 'Regenerate Growth Plan',
     'profile.atTargetLevel': 'at target level',
+    'profile.profileUpdated': 'Profile Updated',
+    'profile.profileUpdatedMessage': 'Your profile information has been saved successfully.',
+    'profile.errorLoadingProfile': 'Error Loading Profile',
+    'profile.profileNotFound': 'Profile not found.',
+    'profile.generatedBasedOnRole': 'Generated based on your role description',
+    'profile.topSkills': 'Top Skills',
 
     // Common
     'common.loading': 'Loading...',
@@ -248,6 +272,7 @@ const translations = {
     'common.success': 'Success',
     'common.warning': 'Warning',
     'common.info': 'Info',
+    'common.saving': 'Saving...',
   },
   ru: {
     // Navigation
@@ -274,6 +299,9 @@ const translations = {
     'home.profileCreated': 'Профиль создан',
     'home.welcomeMessage': 'Добро пожаловать, {name}! Давайте настроим ваш профиль роли.',
     'home.error': 'Не удалось создать ваш профиль. Пожалуйста, попробуйте снова.',
+    'home.errorNetwork': 'Ошибка сети. Пожалуйста, проверьте соединение и попробуйте снова.',
+    'home.errorServer': 'Ошибка сервера. Пожалуйста, попробуйте снова через некоторое время.',
+    'home.errorInput': 'Пожалуйста, проверьте ваши данные и попробуйте снова.',
 
     // Features
     'feature.roleProfiler.title': 'Профайлер роли',
@@ -297,6 +325,9 @@ const translations = {
     'roleProfile.archetype': 'ИИ-генерированный архетип:',
     'roleProfile.continue': 'Перейти к оценке навыков',
     'roleProfile.target': 'Цель:',
+    'roleProfile.missingDescription': 'Отсутствует описание',
+    'roleProfile.profileGenerated': 'Профиль создан',
+    'roleProfile.profileGeneratedMessage': 'Ваш профиль роли успешно создан!',
 
     // Skill Assessment Page
     'skillAssessment.title': 'Оценка навыков',
@@ -312,6 +343,10 @@ const translations = {
     'skillAssessment.createProfile': 'Создать профиль роли',
     'skillAssessment.saved': 'Оценка сохранена',
     'skillAssessment.savedMessage': 'Ваши оценки навыков успешно сохранены.',
+    'skillAssessment.noSkillAreas': 'Области навыков не найдены',
+    'skillAssessment.noSkillAreasMessage': 'Ваш профиль роли не содержит областей навыков. Пожалуйста, пересоздайте ваш профиль роли.',
+    'skillAssessment.goToRoleProfile': 'Перейти к профилю роли',
+    'skillAssessment.noSkillsInArea': 'Навыки для этой области не найдены.',
 
     // Growth Plan Page
     'growthPlan.title': 'План развития',
@@ -365,6 +400,7 @@ const translations = {
     'progress.moreReflections': 'И еще {count} размышлений...',
     'progress.reflectionSaved': 'Размышление сохранено',
     'progress.reflectionSavedMessage': 'Ваше размышление добавлено в журнал.',
+    'progress.yourProgressIn': 'Ваш прогресс в навыках {area}',
 
     // Mental Models Page
     'mentalModels.title': 'Коуч ментальных моделей',
@@ -386,6 +422,13 @@ const translations = {
     'mentalModels.analysisCompleteMessage': 'Создано {count} перспектив ментальных моделей для вашей ситуации.',
     'mentalModels.savedToJournal': 'Сохранено в журнал',
     'mentalModels.savedToJournalMessage': 'Анализ ментальных моделей сохранен в ваш журнал размышлений.',
+    'mentalModels.missingInformation': 'Отсутствует информация',
+    'mentalModels.noSessionData': 'Нет данных сессии для сохранения.',
+    'mentalModels.saveError': 'Не удалось сохранить анализ в журнал. Пожалуйста, попробуйте снова.',
+    'mentalModels.loginRequired': 'Пожалуйста, войдите в систему для доступа к коучу ментальных моделей.',
+    'mentalModels.noModelsGenerated': 'Ментальные модели не созданы',
+    'mentalModels.noModelsGeneratedMessage': 'Анализ не создал ментальных моделей. Пожалуйста, попробуйте снова с другим описанием.',
+    'mentalModels.tryNewAnalysis': 'Попробовать новый анализ',
 
     // Profile Page
     'profile.title': 'Профиль',
@@ -433,6 +476,12 @@ const translations = {
     'profile.updateSkillAssessment': 'Обновить оценку навыков',
     'profile.regenerateGrowthPlan': 'Пересоздать план развития',
     'profile.atTargetLevel': 'на целевом уровне',
+    'profile.profileUpdated': 'Профиль обновлен',
+    'profile.profileUpdatedMessage': 'Информация вашего профиля успешно сохранена.',
+    'profile.errorLoadingProfile': 'Ошибка загрузки профиля',
+    'profile.profileNotFound': 'Профиль не найден.',
+    'profile.generatedBasedOnRole': 'Создано на основе описания вашей роли',
+    'profile.topSkills': 'Лучшие навыки',
 
     // Common
     'common.loading': 'Загрузка...',
@@ -460,6 +509,7 @@ const translations = {
     'common.success': 'Успех',
     'common.warning': 'Предупреждение',
     'common.info': 'Информация',
+    'common.saving': 'Сохранение...',
   },
   de: {
     // Navigation
@@ -486,6 +536,9 @@ const translations = {
     'home.profileCreated': 'Profil erstellt',
     'home.welcomeMessage': 'Willkommen {name}! Lassen Sie uns Ihr Rollenprofil einrichten.',
     'home.error': 'Ihr Profil konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+    'home.errorNetwork': 'Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    'home.errorServer': 'Serverfehler. Bitte versuchen Sie es in einem Moment erneut.',
+    'home.errorInput': 'Bitte überprüfen Sie Ihre Eingabe und versuchen Sie es erneut.',
 
     // Features
     'feature.roleProfiler.title': 'Rollen-Profiler',
@@ -509,6 +562,9 @@ const translations = {
     'roleProfile.archetype': 'KI-generierter Archetyp:',
     'roleProfile.continue': 'Weiter zur Fähigkeitsbewertung',
     'roleProfile.target': 'Ziel:',
+    'roleProfile.missingDescription': 'Fehlende Beschreibung',
+    'roleProfile.profileGenerated': 'Profil erstellt',
+    'roleProfile.profileGeneratedMessage': 'Ihr Rollenprofil wurde erfolgreich erstellt!',
 
     // Skill Assessment Page
     'skillAssessment.title': 'Fähigkeitsbewertung',
@@ -524,6 +580,10 @@ const translations = {
     'skillAssessment.createProfile': 'Rollenprofil erstellen',
     'skillAssessment.saved': 'Bewertung gespeichert',
     'skillAssessment.savedMessage': 'Ihre Fähigkeitsbewertungen wurden erfolgreich gespeichert.',
+    'skillAssessment.noSkillAreas': 'Keine Fähigkeitsbereiche gefunden',
+    'skillAssessment.noSkillAreasMessage': 'Ihr Rollenprofil enthält keine Fähigkeitsbereiche. Bitte erstellen Sie Ihr Rollenprofil neu.',
+    'skillAssessment.goToRoleProfile': 'Zum Rollenprofil gehen',
+    'skillAssessment.noSkillsInArea': 'Keine Fähigkeiten für diesen Bereich gefunden.',
 
     // Growth Plan Page
     'growthPlan.title': 'Entwicklungsplan',
@@ -577,6 +637,7 @@ const translations = {
     'progress.moreReflections': 'Und {count} weitere Reflexionen...',
     'progress.reflectionSaved': 'Reflexion gespeichert',
     'progress.reflectionSavedMessage': 'Ihre Reflexion wurde zu Ihrem Journal hinzugefügt.',
+    'progress.yourProgressIn': 'Ihr Fortschritt in {area} Fähigkeiten',
 
     // Mental Models Page
     'mentalModels.title': 'Mentale Modelle Coach',
@@ -598,6 +659,13 @@ const translations = {
     'mentalModels.analysisCompleteMessage': '{count} mentale Modell-Perspektiven für Ihre Situation erstellt.',
     'mentalModels.savedToJournal': 'Im Journal gespeichert',
     'mentalModels.savedToJournalMessage': 'Mentale Modelle Analyse wurde in Ihrem Reflexionsjournal gespeichert.',
+    'mentalModels.missingInformation': 'Fehlende Informationen',
+    'mentalModels.noSessionData': 'Keine Sitzungsdaten zum Speichern.',
+    'mentalModels.saveError': 'Analyse konnte nicht im Journal gespeichert werden. Bitte versuchen Sie es erneut.',
+    'mentalModels.loginRequired': 'Bitte melden Sie sich an, um auf den Mentale Modelle Coach zuzugreifen.',
+    'mentalModels.noModelsGenerated': 'Keine mentalen Modelle generiert',
+    'mentalModels.noModelsGeneratedMessage': 'Die Analyse hat keine mentalen Modelle generiert. Bitte versuchen Sie es mit einer anderen Beschreibung erneut.',
+    'mentalModels.tryNewAnalysis': 'Neue Analyse versuchen',
 
     // Profile Page
     'profile.title': 'Profil',
@@ -645,6 +713,12 @@ const translations = {
     'profile.updateSkillAssessment': 'Fähigkeitsbewertung aktualisieren',
     'profile.regenerateGrowthPlan': 'Entwicklungsplan neu erstellen',
     'profile.atTargetLevel': 'auf Zielniveau',
+    'profile.profileUpdated': 'Profil aktualisiert',
+    'profile.profileUpdatedMessage': 'Ihre Profilinformationen wurden erfolgreich gespeichert.',
+    'profile.errorLoadingProfile': 'Fehler beim Laden des Profils',
+    'profile.profileNotFound': 'Profil nicht gefunden.',
+    'profile.generatedBasedOnRole': 'Basierend auf Ihrer Rollenbeschreibung generiert',
+    'profile.topSkills': 'Top-Fähigkeiten',
 
     // Common
     'common.loading': 'Laden...',
@@ -672,6 +746,7 @@ const translations = {
     'common.success': 'Erfolg',
     'common.warning': 'Warnung',
     'common.info': 'Info',
+    'common.saving': 'Speichern...',
   },
   es: {
     // Navigation
@@ -698,6 +773,9 @@ const translations = {
     'home.profileCreated': 'Perfil Creado',
     'home.welcomeMessage': '¡Bienvenido {name}! Configuremos tu perfil de rol.',
     'home.error': 'No se pudo crear tu perfil. Por favor intenta de nuevo.',
+    'home.errorNetwork': 'Error de red. Por favor verifica tu conexión e intenta de nuevo.',
+    'home.errorServer': 'Error del servidor. Por favor intenta de nuevo en un momento.',
+    'home.errorInput': 'Por favor verifica tu entrada e intenta de nuevo.',
 
     // Features
     'feature.roleProfiler.title': 'Perfilador de Rol',
@@ -721,6 +799,9 @@ const translations = {
     'roleProfile.archetype': 'Arquetipo generado por IA:',
     'roleProfile.continue': 'Continuar a Evaluación de Habilidades',
     'roleProfile.target': 'Objetivo:',
+    'roleProfile.missingDescription': 'Descripción Faltante',
+    'roleProfile.profileGenerated': 'Perfil Generado',
+    'roleProfile.profileGeneratedMessage': '¡Tu perfil de rol ha sido creado exitosamente!',
 
     // Skill Assessment Page
     'skillAssessment.title': 'Evaluación de Habilidades',
@@ -736,6 +817,10 @@ const translations = {
     'skillAssessment.createProfile': 'Crear Perfil de Rol',
     'skillAssessment.saved': 'Evaluación Guardada',
     'skillAssessment.savedMessage': 'Tus evaluaciones de habilidades se han guardado exitosamente.',
+    'skillAssessment.noSkillAreas': 'No se Encontraron Áreas de Habilidades',
+    'skillAssessment.noSkillAreasMessage': 'Tu perfil de rol no contiene áreas de habilidades. Por favor regenera tu perfil de rol.',
+    'skillAssessment.goToRoleProfile': 'Ir al Perfil de Rol',
+    'skillAssessment.noSkillsInArea': 'No se encontraron habilidades para esta área.',
 
     // Growth Plan Page
     'growthPlan.title': 'Plan de Crecimiento',
@@ -789,6 +874,7 @@ const translations = {
     'progress.moreReflections': 'Y {count} reflexiones más...',
     'progress.reflectionSaved': 'Reflexión Guardada',
     'progress.reflectionSavedMessage': 'Tu reflexión ha sido añadida a tu diario.',
+    'progress.yourProgressIn': 'Tu progreso en habilidades de {area}',
 
     // Mental Models Page
     'mentalModels.title': 'Coach de Modelos Mentales',
@@ -810,6 +896,13 @@ const translations = {
     'mentalModels.analysisCompleteMessage': 'Se generaron {count} perspectivas de modelos mentales sobre tu situación.',
     'mentalModels.savedToJournal': 'Guardado en Diario',
     'mentalModels.savedToJournalMessage': 'El análisis de modelos mentales se ha guardado en tu diario de reflexión.',
+    'mentalModels.missingInformation': 'Información Faltante',
+    'mentalModels.noSessionData': 'No hay datos de sesión para guardar.',
+    'mentalModels.saveError': 'No se pudo guardar el análisis en el diario. Por favor intenta de nuevo.',
+    'mentalModels.loginRequired': 'Por favor inicia sesión para acceder al Coach de Modelos Mentales.',
+    'mentalModels.noModelsGenerated': 'No se Generaron Modelos Mentales',
+    'mentalModels.noModelsGeneratedMessage': 'El análisis no generó modelos mentales. Por favor intenta de nuevo con una descripción diferente.',
+    'mentalModels.tryNewAnalysis': 'Intentar Nuevo Análisis',
 
     // Profile Page
     'profile.title': 'Perfil',
@@ -857,6 +950,12 @@ const translations = {
     'profile.updateSkillAssessment': 'Actualizar Evaluación de Habilidades',
     'profile.regenerateGrowthPlan': 'Regenerar Plan de Crecimiento',
     'profile.atTargetLevel': 'en nivel objetivo',
+    'profile.profileUpdated': 'Perfil Actualizado',
+    'profile.profileUpdatedMessage': 'La información de tu perfil se ha guardado exitosamente.',
+    'profile.errorLoadingProfile': 'Error Cargando Perfil',
+    'profile.profileNotFound': 'Perfil no encontrado.',
+    'profile.generatedBasedOnRole': 'Generado basado en la descripción de tu rol',
+    'profile.topSkills': 'Mejores Habilidades',
 
     // Common
     'common.loading': 'Cargando...',
@@ -884,5 +983,6 @@ const translations = {
     'common.success': 'Éxito',
     'common.warning': 'Advertencia',
     'common.info': 'Información',
+    'common.saving': 'Guardando...',
   }
 };

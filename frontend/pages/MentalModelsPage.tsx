@@ -34,7 +34,7 @@ export default function MentalModelsPage() {
   const analyzeWithMentalModels = async () => {
     if (!userId || !prompt.trim()) {
       toast({
-        title: "Missing Information",
+        title: t('mentalModels.missingInformation'),
         description: t('mentalModels.shareDecision'),
         variant: "destructive",
       });
@@ -100,7 +100,7 @@ export default function MentalModelsPage() {
     if (!userId || !currentSession) {
       toast({
         title: t('common.error'),
-        description: "No session data to save.",
+        description: t('mentalModels.noSessionData'),
         variant: "destructive",
       });
       return;
@@ -130,7 +130,7 @@ export default function MentalModelsPage() {
       console.error('Failed to save to journal:', error);
       toast({
         title: t('common.error'),
-        description: "Failed to save analysis to journal. Please try again.",
+        description: t('mentalModels.saveError'),
         variant: "destructive",
       });
     } finally {
@@ -152,7 +152,7 @@ export default function MentalModelsPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-0">
         <div className="text-center py-12">
-          <p className="text-gray-600">Please log in to access Mental Models Coach.</p>
+          <p className="text-gray-600">{t('mentalModels.loginRequired')}</p>
         </div>
       </div>
     );
@@ -244,7 +244,7 @@ export default function MentalModelsPage() {
                 <div className="flex space-x-2">
                   <Button onClick={saveToJournal} variant="outline" disabled={isSaving}>
                     <Save className="w-4 h-4 mr-2" />
-                    {isSaving ? 'Saving...' : t('mentalModels.saveToJournal')}
+                    {isSaving ? t('common.saving') : t('mentalModels.saveToJournal')}
                   </Button>
                   <Button onClick={startNewAnalysis} variant="outline">
                     {t('mentalModels.newAnalysis')}
@@ -303,14 +303,14 @@ export default function MentalModelsPage() {
               ) : (
                 <Card>
                   <CardHeader>
-                    <CardTitle>No Mental Models Generated</CardTitle>
+                    <CardTitle>{t('mentalModels.noModelsGenerated')}</CardTitle>
                     <CardDescription>
-                      The analysis didn't generate any mental models. Please try again with a different description.
+                      {t('mentalModels.noModelsGeneratedMessage')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Button onClick={startNewAnalysis}>
-                      Try New Analysis
+                      {t('mentalModels.tryNewAnalysis')}
                     </Button>
                   </CardContent>
                 </Card>

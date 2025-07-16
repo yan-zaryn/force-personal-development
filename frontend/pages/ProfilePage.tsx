@@ -101,8 +101,8 @@ export default function ProfilePage() {
       setIsEditing(false);
       
       toast({
-        title: "Profile Updated",
-        description: "Your profile information has been saved successfully.",
+        title: t('profile.profileUpdated'),
+        description: t('profile.profileUpdatedMessage'),
       });
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -174,7 +174,7 @@ export default function ProfilePage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Error Loading Profile</CardTitle>
+            <CardTitle>{t('profile.errorLoadingProfile')}</CardTitle>
             <CardDescription>
               {error}
             </CardDescription>
@@ -193,7 +193,7 @@ export default function ProfilePage() {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-0">
         <div className="text-center py-12">
-          <p className="text-gray-600">Profile not found.</p>
+          <p className="text-gray-600">{t('profile.profileNotFound')}</p>
           <Button onClick={() => navigate('/')} className="mt-4">
             {t('common.goHome')}
           </Button>
@@ -308,7 +308,7 @@ export default function ProfilePage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Top Skills</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('profile.topSkills')}</CardTitle>
                 <Award className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -412,7 +412,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900">{roleProfile.archetype}</h3>
-                      <p className="text-sm text-gray-600">Generated based on your role description</p>
+                      <p className="text-sm text-gray-600">{t('profile.generatedBasedOnRole')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -495,7 +495,7 @@ export default function ProfilePage() {
                 <CardHeader>
                   <CardTitle>{area}</CardTitle>
                   <CardDescription>
-                    Your progress in {area.toLowerCase()} skills
+                    {t('progress.yourProgressIn').replace('{area}', area.toLowerCase())}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -601,7 +601,7 @@ export default function ProfilePage() {
                 <div className="flex space-x-3 pt-4">
                   <Button onClick={handleSaveProfile} disabled={isSaving}>
                     <Save className="w-4 h-4 mr-2" />
-                    {isSaving ? 'Saving...' : t('profile.saveChanges')}
+                    {isSaving ? t('common.saving') : t('profile.saveChanges')}
                   </Button>
                   <Button 
                     onClick={() => {
