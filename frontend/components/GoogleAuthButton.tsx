@@ -17,10 +17,13 @@ export default function GoogleAuthButton({ onSuccess, className }: GoogleAuthBut
   const { toast } = useToast();
 
   const handleGoogleLogin = async () => {
-    if (!googleClientId) {
+    console.log('Google Client ID:', googleClientId);
+    console.log('Google Redirect URI:', googleRedirectUri);
+    
+    if (!googleClientId || googleClientId.trim() === "") {
       toast({
         title: "Configuration Error",
-        description: "Google OAuth is not configured. Please contact support.",
+        description: "Google OAuth Client ID is not configured. Please set REACT_APP_GOOGLE_CLIENT_ID environment variable or update the config.ts file.",
         variant: "destructive",
       });
       return;
@@ -40,6 +43,7 @@ export default function GoogleAuthButton({ onSuccess, className }: GoogleAuthBut
       });
 
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+      console.log('Opening OAuth URL:', authUrl);
 
       // Open popup window for OAuth
       const popup = window.open(
@@ -61,16 +65,20 @@ export default function GoogleAuthButton({ onSuccess, className }: GoogleAuthBut
           window.removeEventListener('message', handleMessage);
 
           try {
+            console.log('Received OAuth success, exchanging code for session...');
             // Exchange code for session
             const response = await backend.auth.googleAuth({
               code: event.data.code,
               redirectUri: googleRedirectUri
             });
 
+            console.log('Backend auth response received');
+
             // The session cookie is set automatically by the backend
             // Now we need to get the session token from the cookie
             const sessionToken = getCookie('session');
             if (sessionToken) {
+              console.log('Session token found, logging in user...');
               await login(sessionToken);
               onSuccess?.();
               
@@ -79,7 +87,8 @@ export default function GoogleAuthButton({ onSuccess, className }: GoogleAuthBut
                 description: `Successfully signed in as ${response.user.name}`,
               });
             } else {
-              throw new Error('Session not established');
+              console.error('No session token found in cookies');
+              throw new Error('Session not established - no session cookie found');
             }
           } catch (error) {
             console.error('Authentication failed:', error);
@@ -93,6 +102,7 @@ export default function GoogleAuthButton({ onSuccess, className }: GoogleAuthBut
           popup.close();
           window.removeEventListener('message', handleMessage);
           
+          console.error('OAuth error received:', event.data.error);
           toast({
             title: "Authentication Failed",
             description: event.data.error || "Failed to authenticate with Google",
@@ -111,6 +121,7 @@ export default function GoogleAuthButton({ onSuccess, className }: GoogleAuthBut
           clearInterval(checkClosed);
           window.removeEventListener('message', handleMessage);
           setIsLoading(false);
+          console.log('OAuth popup was closed manually');
         }
       }, 1000);
 
